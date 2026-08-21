@@ -474,14 +474,14 @@ function AddressStep({
     try {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
       const data = (await res.json()) as Record<string, string>;
-      if (!data.erro) {
+      if (!data['erro']) {
         onChange({
           ...address,
           cep: maskCEP(cep),
-          rua: data.logradouro ?? "",
-          bairro: data.bairro ?? "",
-          cidade: data.localidade ?? "",
-          uf: data.uf ?? "",
+          rua: data['logradouro'] ?? "",
+          bairro: data['bairro'] ?? "",
+          cidade: data['localidade'] ?? "",
+          uf: data['uf'] ?? "",
         });
       }
     } catch {
