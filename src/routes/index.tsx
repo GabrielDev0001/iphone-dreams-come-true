@@ -181,16 +181,13 @@ function Header({ affiliate }: { affiliate: string | null }) {
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <span className="grid place-items-center rounded-xl bg-white px-2 py-1.5">
-            <img
-              src={logoAsset.url}
-              alt="Gorillaphone — logo"
-              width={900}
-              height={611}
-              className="h-9 w-auto"
-            />
-          </span>
-          <span className="font-display text-lg font-bold tracking-tight">Gorillaphonebh</span>
+          <img
+            src={logoAsset.url}
+            alt="Gorillaphone — logo"
+            width={900}
+            height={611}
+            className="h-10 w-auto"
+          />
         </div>
         <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
           <ShieldCheck className="size-4 text-primary" />
