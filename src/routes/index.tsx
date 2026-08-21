@@ -12,6 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 import heroImage from "@/assets/hero-iphones.jpg";
+import logoAsset from "@/assets/gorillaphone-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
