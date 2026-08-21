@@ -159,7 +159,9 @@ function Index() {
       </section>
 
       <footer className="border-t border-border px-4 py-10 text-center text-sm text-muted-foreground">
-        <p className="font-semibold text-foreground">Gorillaphonebh</p>
+        <span className="mx-auto mb-3 inline-block rounded-xl bg-white px-3 py-2">
+          <img src={logoAsset.url} alt="Gorillaphone" width={900} height={611} className="h-10 w-auto" />
+        </span>
         <p className="mt-1">iPhones lacrados e semi-novos • Entrega em todo o Brasil 🇧🇷</p>
         <p className="mt-3 text-xs">
           Valores de parcelamento simulados com taxa média de mercado de {(monthlyRate(48) * 100).toFixed(2)}% a.m.
