@@ -12,6 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 import heroImage from "@/assets/hero-iphones.jpg";
+import logoAsset from "@/assets/gorillaphone-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -159,7 +160,7 @@ function Index() {
 
       <footer className="border-t border-border px-4 py-10 text-center text-sm text-muted-foreground">
         <img
-          src="/logo-green.png"
+          src={logoAsset.url}
           alt="Gorillaphone"
           width={900}
           height={611}
@@ -181,7 +182,7 @@ function Header({ affiliate }: { affiliate: string | null }) {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <img
-            src="/logo-green.png"
+            src={logoAsset.url}
             alt="Gorillaphone — logo"
             width={900}
             height={611}
