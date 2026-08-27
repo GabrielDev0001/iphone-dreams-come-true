@@ -76,57 +76,65 @@
 }
 
 :root {
+  color-scheme: dark;
   --radius: 1rem;
-  --background: oklch(0.985 0.002 260);
-  --foreground: oklch(0.16 0.01 260);
-  --surface: oklch(0.955 0.003 260);
-  --surface-foreground: oklch(0.16 0.01 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.01 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.01 260);
-  --primary: oklch(0.55 0.22 25);
+
+  /* Base grafite — valoriza foto/vídeo de aparelho e combina com o logo */
+  --background: oklch(0.145 0.012 265);
+  --foreground: oklch(0.97 0.004 260);
+  --surface: oklch(0.235 0.013 265);
+  --surface-foreground: oklch(0.97 0.004 260);
+  --card: oklch(0.245 0.014 265);
+  --card-foreground: oklch(0.97 0.004 260);
+  --popover: oklch(0.245 0.014 265);
+  --popover-foreground: oklch(0.97 0.004 260);
+
+  /* Vermelho da marca, um pouco mais aberto para brilhar no escuro */
+  --primary: oklch(0.62 0.21 25);
   --primary-foreground: oklch(0.99 0.005 260);
-  --brand: oklch(0.18 0.01 260);
-  --brand-foreground: oklch(0.99 0.005 260);
-  --secondary: oklch(0.945 0.004 260);
-  --secondary-foreground: oklch(0.2 0.01 260);
-  --muted: oklch(0.955 0.003 260);
-  --muted-foreground: oklch(0.48 0.012 260);
-  --accent: oklch(0.94 0.02 25);
-  --accent-foreground: oklch(0.25 0.06 25);
-  --success: oklch(0.6 0.15 155);
-  --destructive: oklch(0.55 0.22 25);
+
+  /* Chip claro (selos "lacrado"/"semi-novo") — inverte sobre o fundo escuro */
+  --brand: oklch(0.97 0.004 260);
+  --brand-foreground: oklch(0.18 0.012 265);
+
+  --secondary: oklch(0.305 0.015 265);
+  --secondary-foreground: oklch(0.96 0.004 260);
+  --muted: oklch(0.29 0.014 265);
+  --muted-foreground: oklch(0.74 0.012 260);
+  --accent: oklch(0.32 0.05 25);
+  --accent-foreground: oklch(0.96 0.02 25);
+  --success: oklch(0.72 0.16 155);
+  --destructive: oklch(0.62 0.21 25);
   --destructive-foreground: oklch(0.99 0.005 260);
-  --border: oklch(0.16 0.01 260 / 12%);
-  --input: oklch(0.16 0.01 260 / 18%);
-  --ring: oklch(0.55 0.22 25);
-  --chart-1: oklch(0.55 0.22 25);
-  --chart-2: oklch(0.2 0.01 260);
-  --chart-3: oklch(0.6 0.15 155);
-  --chart-4: oklch(0.7 0.14 60);
-  --chart-5: oklch(0.6 0.1 260);
-  --sidebar: oklch(0.98 0.002 260);
-  --sidebar-foreground: oklch(0.16 0.01 260);
-  --sidebar-primary: oklch(0.55 0.22 25);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 20%);
+  --ring: oklch(0.62 0.21 25);
+  --chart-1: oklch(0.62 0.21 25);
+  --chart-2: oklch(0.74 0.16 55);
+  --chart-3: oklch(0.72 0.16 155);
+  --chart-4: oklch(0.78 0.13 85);
+  --chart-5: oklch(0.68 0.1 260);
+  --sidebar: oklch(0.2 0.013 265);
+  --sidebar-foreground: oklch(0.97 0.004 260);
+  --sidebar-primary: oklch(0.62 0.21 25);
   --sidebar-primary-foreground: oklch(0.99 0.005 260);
-  --sidebar-accent: oklch(0.945 0.004 260);
-  --sidebar-accent-foreground: oklch(0.2 0.01 260);
-  --sidebar-border: oklch(0.16 0.01 260 / 12%);
-  --sidebar-ring: oklch(0.55 0.22 25);
+  --sidebar-accent: oklch(0.305 0.015 265);
+  --sidebar-accent-foreground: oklch(0.96 0.004 260);
+  --sidebar-border: oklch(1 0 0 / 14%);
+  --sidebar-ring: oklch(0.62 0.21 25);
 
   --gradient-brand: linear-gradient(
     100deg,
-    oklch(0.18 0.01 260) 0%,
-    oklch(0.55 0.22 25) 100%
+    oklch(0.62 0.21 25) 0%,
+    oklch(0.74 0.16 55) 100%
   );
   --gradient-glow: radial-gradient(
     60% 60% at 50% 0%,
-    oklch(0.55 0.22 25 / 0.12) 0%,
+    oklch(0.62 0.21 25 / 0.22) 0%,
     transparent 100%
   );
-  --shadow-glow: 0 0 0 1px oklch(0.16 0.01 260 / 0.08), 0 24px 60px -20px oklch(0.55 0.22 25 / 0.35);
-  --shadow-card: 0 18px 40px -28px oklch(0.16 0.01 260 / 0.45);
+  --shadow-glow: 0 0 0 1px oklch(1 0 0 / 0.07), 0 30px 70px -25px oklch(0.62 0.21 25 / 0.45);
+  --shadow-card: 0 18px 40px -24px oklch(0 0 0 / 0.75);
 }
 
 @layer base {

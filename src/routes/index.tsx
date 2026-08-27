@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -12,6 +12,7 @@ import {
   Smartphone,
   Truck,
   UserRound,
+  Volume2,
 } from "lucide-react";
 import logoAsset from "@/assets/gorillaphone-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ import { maskCEP, maskCPF, maskDate, maskPhone, maskedCPFTail } from "@/lib/form
 
 /** Vídeo de apresentação servido de public/. */
 const HERO_VIDEO_SRC = "/apresentacao.mp4";
+const HERO_VIDEO_POSTER = "/apresentacao-capa.jpg";
 
 const TITLE = "Gorillaphonebh — iPhone parcelado no boleto em até 48x";
 const DESCRIPTION =
@@ -259,13 +261,16 @@ function Header({ affiliate }: { affiliate: string | null }) {
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <a href="/" className="flex items-center gap-3">
-          <img
-            src={logoAsset.url}
-            alt="Gorillaphone — logo"
-            width={900}
-            height={611}
-            className="h-14 w-auto sm:h-20"
-          />
+          {/* A logo é arte preta: precisa de fundo claro para aparecer no tema escuro. */}
+          <span className="inline-flex rounded-2xl bg-white px-2.5 py-1.5 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.9)]">
+            <img
+              src={logoAsset.url}
+              alt="Gorillaphone — logo"
+              width={900}
+              height={611}
+              className="h-14 w-auto sm:h-18"
+            />
+          </span>
         </a>
         <div className="flex items-center gap-3">
           {affiliate && (
@@ -323,19 +328,58 @@ function Hero({ onStart }: { onStart: () => void }) {
           </ul>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[260px] sm:max-w-xs lg:max-w-sm">
-          <video
-            src={HERO_VIDEO_SRC}
-            controls
-            playsInline
-            preload="metadata"
-            className="w-full rounded-3xl border border-border bg-brand shadow-[var(--shadow-glow)]"
-          >
-            Seu navegador não consegue reproduzir este vídeo.
-          </video>
-        </div>
+        <HeroVideo />
       </div>
     </section>
+  );
+}
+
+/**
+ * Toca sozinho no mudo (única forma que os navegadores permitem autoplay);
+ * o botão de som só aparece enquanto está mudo.
+ */
+function HeroVideo() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v) v.muted = muted;
+  }, [muted]);
+
+  return (
+    <div className="relative mx-auto w-full max-w-[260px] sm:max-w-xs lg:max-w-sm">
+      <video
+        ref={videoRef}
+        src={HERO_VIDEO_SRC}
+        poster={HERO_VIDEO_POSTER}
+        autoPlay
+        muted
+        loop
+        controls
+        playsInline
+        preload="auto"
+        className="w-full rounded-3xl border border-border bg-secondary shadow-[var(--shadow-glow)]"
+      >
+        Seu navegador não consegue reproduzir este vídeo.
+      </video>
+      {muted && (
+        <button
+          type="button"
+          onClick={() => {
+            const v = videoRef.current;
+            setMuted(false);
+            if (v) {
+              v.muted = false;
+              void v.play();
+            }
+          }}
+          className="absolute top-1/2 left-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-brand/85 px-5 py-3 text-sm font-semibold text-brand-foreground shadow-lg backdrop-blur transition-transform hover:scale-105 hover:bg-brand"
+        >
+          <Volume2 className="size-5" /> Ativar som
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -449,7 +493,7 @@ function PhoneCard({
               aria-pressed={i === colorIndex}
               onClick={() => setColorIndex(i)}
               style={{ backgroundColor: c.hex }}
-              className={`size-5 rounded-full border border-black/15 transition-transform ${
+              className={`size-5 rounded-full border border-white/20 transition-transform ${
                 i === colorIndex
                   ? "ring-2 ring-primary ring-offset-2 ring-offset-card"
                   : "hover:scale-110"
@@ -987,13 +1031,15 @@ function FloatingWhatsapp() {
 function Footer() {
   return (
     <footer className="border-t border-border px-4 py-10 text-center text-sm text-muted-foreground">
-      <img
-        src={logoAsset.url}
-        alt="Gorillaphone"
-        width={900}
-        height={611}
-        className="mx-auto mb-4 h-20 w-auto sm:h-24"
-      />
+      <span className="mx-auto mb-4 inline-flex rounded-2xl bg-white px-4 py-3">
+        <img
+          src={logoAsset.url}
+          alt="Gorillaphone"
+          width={900}
+          height={611}
+          className="h-20 w-auto sm:h-24"
+        />
+      </span>
       <div className="flex justify-center">
         <SocialLinks />
       </div>
