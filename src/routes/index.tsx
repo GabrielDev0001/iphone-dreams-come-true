@@ -28,6 +28,7 @@ import {
 import { PixCheckout } from "@/components/PixCheckout";
 import { IphoneArt } from "@/components/IphoneArt";
 import { WhatsappIcon } from "@/components/WhatsappIcon";
+import { ClientesMarquee } from "@/components/ClientesMarquee";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "@/lib/contact";
 import {
   ANALYSIS_FEE,
@@ -141,6 +142,7 @@ function Index() {
       {step === 0 && (
         <>
           <Hero onStart={goToFlow} />
+          <ClientesMarquee />
         </>
       )}
 
