@@ -82,26 +82,159 @@ const BASE_14: PhoneColor[] = [
 ];
 
 export const IPHONES: Iphone[] = [
-  { id: "17pm-512", name: "iPhone 17 Pro Max", storage: "512GB", price: 8350, condition: "lacrado", colors: PRO_17 },
-  { id: "17pm-256", name: "iPhone 17 Pro Max", storage: "256GB", price: 7200, condition: "lacrado", colors: PRO_17 },
-  { id: "17p-256", name: "iPhone 17 Pro", storage: "256GB", price: 6900, condition: "lacrado", colors: PRO_17 },
-  { id: "17-256-a", name: "iPhone 17", storage: "256GB", price: 5100, condition: "lacrado", colors: BASE_17 },
-  { id: "17-256-b", name: "iPhone 17", storage: "256GB", price: 4850, condition: "lacrado", colors: BASE_17 },
-  { id: "17air-256", name: "iPhone 17 Air", storage: "256GB", price: 5390, condition: "lacrado", colors: AIR_17 },
+  {
+    id: "17pm-512",
+    name: "iPhone 17 Pro Max",
+    storage: "512GB",
+    price: 8350,
+    condition: "lacrado",
+    colors: PRO_17,
+  },
+  {
+    id: "17pm-256",
+    name: "iPhone 17 Pro Max",
+    storage: "256GB",
+    price: 7200,
+    condition: "lacrado",
+    colors: PRO_17,
+  },
+  {
+    id: "17p-256",
+    name: "iPhone 17 Pro",
+    storage: "256GB",
+    price: 6900,
+    condition: "lacrado",
+    colors: PRO_17,
+  },
+  {
+    id: "17-256-a",
+    name: "iPhone 17",
+    storage: "256GB",
+    price: 5100,
+    condition: "lacrado",
+    colors: BASE_17,
+  },
+  {
+    id: "17-256-b",
+    name: "iPhone 17",
+    storage: "256GB",
+    price: 4850,
+    condition: "lacrado",
+    colors: BASE_17,
+  },
+  {
+    id: "17air-256",
+    name: "iPhone 17 Air",
+    storage: "256GB",
+    price: 5390,
+    condition: "lacrado",
+    colors: AIR_17,
+  },
 
-  { id: "14-128", name: "iPhone 14", storage: "128GB", price: 2099, condition: "semi-novo", colors: BASE_14 },
-  { id: "14-256", name: "iPhone 14", storage: "256GB", price: 2299, condition: "semi-novo", colors: BASE_14 },
-  { id: "14plus-128", name: "iPhone 14 Plus", storage: "128GB", price: 2200, condition: "semi-novo", colors: BASE_14 },
-  { id: "14pro-128", name: "iPhone 14 Pro", storage: "128GB", price: 2750, condition: "semi-novo", colors: PRO_14 },
-  { id: "14pm-256", name: "iPhone 14 Pro Max", storage: "256GB", price: 3399, condition: "semi-novo", colors: PRO_14 },
-  { id: "15-128", name: "iPhone 15", storage: "128GB", price: 2699, condition: "semi-novo", colors: BASE_15 },
-  { id: "15pro-256", name: "iPhone 15 Pro", storage: "256GB", price: 3550, condition: "semi-novo", colors: PRO_15 },
-  { id: "15pm-256", name: "iPhone 15 Pro Max", storage: "256GB", price: 4050, condition: "semi-novo", colors: PRO_15 },
-  { id: "16-128", name: "iPhone 16", storage: "128GB", price: 3550, condition: "semi-novo", colors: BASE_16 },
-  { id: "16plus-128", name: "iPhone 16 Plus", storage: "128GB", price: 3799, condition: "semi-novo", colors: BASE_16 },
-  { id: "16pro-128", name: "iPhone 16 Pro", storage: "128GB", price: 4249, condition: "semi-novo", colors: PRO_16 },
-  { id: "16pro-256", name: "iPhone 16 Pro", storage: "256GB", price: 4499, condition: "semi-novo", colors: PRO_16 },
-  { id: "16pm-256", name: "iPhone 16 Pro Max", storage: "256GB", price: 5099, condition: "semi-novo", colors: PRO_16 },
+  {
+    id: "14-128",
+    name: "iPhone 14",
+    storage: "128GB",
+    price: 2099,
+    condition: "semi-novo",
+    colors: BASE_14,
+  },
+  {
+    id: "14-256",
+    name: "iPhone 14",
+    storage: "256GB",
+    price: 2299,
+    condition: "semi-novo",
+    colors: BASE_14,
+  },
+  {
+    id: "14plus-128",
+    name: "iPhone 14 Plus",
+    storage: "128GB",
+    price: 2200,
+    condition: "semi-novo",
+    colors: BASE_14,
+  },
+  {
+    id: "14pro-128",
+    name: "iPhone 14 Pro",
+    storage: "128GB",
+    price: 2750,
+    condition: "semi-novo",
+    colors: PRO_14,
+  },
+  {
+    id: "14pm-256",
+    name: "iPhone 14 Pro Max",
+    storage: "256GB",
+    price: 3399,
+    condition: "semi-novo",
+    colors: PRO_14,
+  },
+  {
+    id: "15-128",
+    name: "iPhone 15",
+    storage: "128GB",
+    price: 2699,
+    condition: "semi-novo",
+    colors: BASE_15,
+  },
+  {
+    id: "15pro-256",
+    name: "iPhone 15 Pro",
+    storage: "256GB",
+    price: 3550,
+    condition: "semi-novo",
+    colors: PRO_15,
+  },
+  {
+    id: "15pm-256",
+    name: "iPhone 15 Pro Max",
+    storage: "256GB",
+    price: 4050,
+    condition: "semi-novo",
+    colors: PRO_15,
+  },
+  {
+    id: "16-128",
+    name: "iPhone 16",
+    storage: "128GB",
+    price: 3550,
+    condition: "semi-novo",
+    colors: BASE_16,
+  },
+  {
+    id: "16plus-128",
+    name: "iPhone 16 Plus",
+    storage: "128GB",
+    price: 3799,
+    condition: "semi-novo",
+    colors: BASE_16,
+  },
+  {
+    id: "16pro-128",
+    name: "iPhone 16 Pro",
+    storage: "128GB",
+    price: 4249,
+    condition: "semi-novo",
+    colors: PRO_16,
+  },
+  {
+    id: "16pro-256",
+    name: "iPhone 16 Pro",
+    storage: "256GB",
+    price: 4499,
+    condition: "semi-novo",
+    colors: PRO_16,
+  },
+  {
+    id: "16pm-256",
+    name: "iPhone 16 Pro Max",
+    storage: "256GB",
+    price: 5099,
+    condition: "semi-novo",
+    colors: PRO_16,
+  },
 ];
 
 export const FALLBACK_COLOR: PhoneColor = { name: "Preto", hex: "#2A2A2D" };
@@ -143,8 +276,7 @@ export function totalValue(price: number, installments: number): number {
   return installmentValue(price, installments) * installments;
 }
 
-export const BRL = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const BRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export const INSTALLMENT_OPTIONS = [6, 12, 18, 24, 36, 48];
 

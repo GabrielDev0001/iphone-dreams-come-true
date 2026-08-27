@@ -67,7 +67,14 @@ export const Route = createFileRoute("/")({
 
 type Step = 0 | 1 | 2 | 3 | 4;
 
-type Address = { cep: string; rua: string; numero: string; bairro: string; cidade: string; uf: string };
+type Address = {
+  cep: string;
+  rua: string;
+  numero: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+};
 type Person = {
   nome: string;
   cpf: string;
@@ -363,7 +370,8 @@ function VideoSection() {
         <div className="text-center">
           <PlayCircle className="mx-auto size-14 text-primary" />
           <p className="mt-3 text-sm text-muted-foreground">
-            Espaço reservado para o vídeo apresentativo — envie o link/arquivo para publicarmos aqui.
+            Espaço reservado para o vídeo apresentativo — envie o link/arquivo para publicarmos
+            aqui.
           </p>
         </div>
       </div>
@@ -380,7 +388,9 @@ function Stepper({ step }: { step: Step }) {
         <li key={label} className="flex items-center gap-2">
           <span
             className={`grid size-6 place-items-center rounded-full font-bold ${
-              i <= step ? "bg-gradient-brand text-primary-foreground" : "bg-secondary text-muted-foreground"
+              i <= step
+                ? "bg-gradient-brand text-primary-foreground"
+                : "bg-secondary text-muted-foreground"
             }`}
           >
             {i + 1}
@@ -393,13 +403,7 @@ function Stepper({ step }: { step: Step }) {
   );
 }
 
-function InstallmentPicker({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (n: number) => void;
-}) {
+function InstallmentPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   return (
     <div className="flex flex-wrap gap-2">
       {INSTALLMENT_OPTIONS.map((n) => (
@@ -639,7 +643,8 @@ function AddressStep({
   onNext: () => void;
 }) {
   const [loadingCep, setLoadingCep] = useState(false);
-  const valid = address.cep.replace(/\D/g, "").length === 8 && address.rua && address.numero && address.cidade;
+  const valid =
+    address.cep.replace(/\D/g, "").length === 8 && address.rua && address.numero && address.cidade;
 
   async function lookupCep(cep: string) {
     const digits = cep.replace(/\D/g, "");
@@ -648,14 +653,14 @@ function AddressStep({
     try {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
       const data = (await res.json()) as Record<string, string>;
-      if (!data['erro']) {
+      if (!data["erro"]) {
         onChange({
           ...address,
           cep: maskCEP(cep),
-          rua: data['logradouro'] ?? "",
-          bairro: data['bairro'] ?? "",
-          cidade: data['localidade'] ?? "",
-          uf: data['uf'] ?? "",
+          rua: data["logradouro"] ?? "",
+          bairro: data["bairro"] ?? "",
+          cidade: data["localidade"] ?? "",
+          uf: data["uf"] ?? "",
         });
       }
     } catch {
@@ -689,11 +694,27 @@ function AddressStep({
             onChange={(v) => onChange({ ...address, numero: v })}
           />
           <div className="sm:col-span-2">
-            <Field label="Rua" value={address.rua} onChange={(v) => onChange({ ...address, rua: v })} />
+            <Field
+              label="Rua"
+              value={address.rua}
+              onChange={(v) => onChange({ ...address, rua: v })}
+            />
           </div>
-          <Field label="Bairro" value={address.bairro} onChange={(v) => onChange({ ...address, bairro: v })} />
-          <Field label="Cidade" value={address.cidade} onChange={(v) => onChange({ ...address, cidade: v })} />
-          <Field label="Estado (UF)" value={address.uf} onChange={(v) => onChange({ ...address, uf: v.toUpperCase().slice(0, 2) })} />
+          <Field
+            label="Bairro"
+            value={address.bairro}
+            onChange={(v) => onChange({ ...address, bairro: v })}
+          />
+          <Field
+            label="Cidade"
+            value={address.cidade}
+            onChange={(v) => onChange({ ...address, cidade: v })}
+          />
+          <Field
+            label="Estado (UF)"
+            value={address.uf}
+            onChange={(v) => onChange({ ...address, uf: v.toUpperCase().slice(0, 2) })}
+          />
         </div>
         {loadingCep && <p className="mt-3 text-xs text-muted-foreground">Buscando endereço…</p>}
         <div className="mt-6 flex flex-wrap gap-3">
@@ -771,7 +792,11 @@ function PersonStep({
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <Field label="Nome completo" value={person.nome} onChange={(v) => onChange({ ...person, nome: v })} />
+          <Field
+            label="Nome completo"
+            value={person.nome}
+            onChange={(v) => onChange({ ...person, nome: v })}
+          />
         </div>
         <Field
           label="CPF"
@@ -864,8 +889,9 @@ function ApprovedStep({
           <span className="text-gradient-brand">pré-aprovado</span>
         </h2>
         <p className="mt-2 text-muted-foreground">
-          Pré-aprovação registrada para o CPF <span className="font-semibold text-foreground">{cpf}</span> —{" "}
-          {selected.name} {selected.storage}
+          Pré-aprovação registrada para o CPF{" "}
+          <span className="font-semibold text-foreground">{cpf}</span> — {selected.name}{" "}
+          {selected.storage}
           {color ? ` na cor ${color.name}` : ""} em {installments}x de{" "}
           {BRL(installmentValue(selected.price, installments))}.
         </p>
