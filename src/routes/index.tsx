@@ -8,13 +8,11 @@ import {
   Instagram,
   MapPin,
   Package,
-  PlayCircle,
   ShieldCheck,
   Smartphone,
   Truck,
   UserRound,
 } from "lucide-react";
-import heroImage from "@/assets/hero-iphones.jpg";
 import logoAsset from "@/assets/gorillaphone-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +44,9 @@ import {
   type PhoneColor,
 } from "@/lib/iphones";
 import { maskCEP, maskCPF, maskDate, maskPhone, maskedCPFTail } from "@/lib/format";
+
+/** Vídeo de apresentação servido de public/. */
+const HERO_VIDEO_SRC = "/apresentacao.mp4";
 
 const TITLE = "Gorillaphonebh — iPhone parcelado no boleto em até 48x";
 const DESCRIPTION =
@@ -138,8 +139,6 @@ function Index() {
       {step === 0 && (
         <>
           <Hero onStart={goToFlow} />
-          <TrustStrip />
-          <VideoSection />
         </>
       )}
 
@@ -210,6 +209,7 @@ function Index() {
 
       {step === 0 && (
         <>
+          <TrustStrip />
           <Faq />
           <WhatsappBand />
         </>
@@ -323,14 +323,16 @@ function Hero({ onStart }: { onStart: () => void }) {
           </ul>
         </div>
 
-        <div className="relative">
-          <img
-            src={heroImage}
-            alt="iPhone premium em fundo escuro com iluminação de estúdio"
-            width={1600}
-            height={1008}
-            className="rounded-3xl border border-border shadow-[var(--shadow-glow)]"
-          />
+        <div className="relative mx-auto w-full max-w-[260px] sm:max-w-xs lg:max-w-sm">
+          <video
+            src={HERO_VIDEO_SRC}
+            controls
+            playsInline
+            preload="metadata"
+            className="w-full rounded-3xl border border-border bg-brand shadow-[var(--shadow-glow)]"
+          >
+            Seu navegador não consegue reproduzir este vídeo.
+          </video>
         </div>
       </div>
     </section>
@@ -354,26 +356,6 @@ function TrustStrip() {
             <p className="mt-1 text-xs text-muted-foreground">{text}</p>
           </div>
         ))}
-      </div>
-    </section>
-  );
-}
-
-function VideoSection() {
-  return (
-    <section id="video" className="mx-auto max-w-4xl scroll-mt-20 px-4 pb-16">
-      <h2 className="text-center text-2xl font-bold sm:text-3xl">Como funciona</h2>
-      <p className="mt-2 text-center text-muted-foreground">
-        Assista ao vídeo de apresentação e entenda o processo em 1 minuto.
-      </p>
-      <div className="card-elevated mt-6 grid aspect-video place-items-center overflow-hidden">
-        <div className="text-center">
-          <PlayCircle className="mx-auto size-14 text-primary" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Espaço reservado para o vídeo apresentativo — envie o link/arquivo para publicarmos
-            aqui.
-          </p>
-        </div>
       </div>
     </section>
   );
