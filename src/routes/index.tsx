@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
+  Building2,
   CheckCircle2,
   CreditCard,
   Instagram,
@@ -29,7 +30,7 @@ import { PixCheckout } from "@/components/PixCheckout";
 import { IphoneArt } from "@/components/IphoneArt";
 import { WhatsappIcon } from "@/components/WhatsappIcon";
 import { ClientesMarquee } from "@/components/ClientesMarquee";
-import { INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "@/lib/contact";
+import { CNPJ, ENDERECO, INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "@/lib/contact";
 import {
   ANALYSIS_FEE,
   BRL,
@@ -262,18 +263,32 @@ function Header({ affiliate }: { affiliate: string | null }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <a href="/" className="flex items-center gap-3">
-          {/* A logo é arte preta: precisa de fundo claro para aparecer no tema escuro. */}
-          <span className="inline-flex rounded-2xl bg-white px-2.5 py-1.5 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.9)]">
-            <img
-              src={logoAsset.url}
-              alt="Gorillaphone — logo"
-              width={900}
-              height={611}
-              className="h-14 w-auto sm:h-18"
-            />
-          </span>
-        </a>
+        <div className="flex items-center gap-4">
+          <a href="/" className="shrink-0">
+            {/* A logo é arte preta: precisa de fundo claro para aparecer no tema escuro. */}
+            <span className="inline-flex rounded-2xl bg-white px-2.5 py-1.5 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.9)]">
+              <img
+                src={logoAsset.url}
+                alt="Gorillaphone — logo"
+                width={900}
+                height={611}
+                className="h-14 w-auto sm:h-18"
+              />
+            </span>
+          </a>
+
+          <div className="hidden border-l border-border pl-4 text-xs leading-snug text-muted-foreground md:block">
+            <p className="flex items-center gap-1.5">
+              <MapPin className="size-3.5 shrink-0 text-primary" />
+              <span className="font-medium text-foreground">{ENDERECO}</span>
+            </p>
+            <p className="mt-1 flex items-center gap-1.5">
+              <Building2 className="size-3.5 shrink-0 text-primary" />
+              CNPJ {CNPJ}
+            </p>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3">
           {affiliate && (
             <span className="hidden rounded-full bg-secondary px-2 py-1 text-xs text-muted-foreground sm:inline">
@@ -282,6 +297,11 @@ function Header({ affiliate }: { affiliate: string | null }) {
           )}
           <SocialLinks compact />
         </div>
+      </div>
+
+      {/* No celular não cabe ao lado da logo: vira uma linha discreta logo abaixo. */}
+      <div className="border-t border-border/60 px-4 py-1.5 text-center text-[11px] text-muted-foreground md:hidden">
+        <span className="font-medium text-foreground">{ENDERECO}</span> · CNPJ {CNPJ}
       </div>
     </header>
   );
@@ -1046,6 +1066,8 @@ function Footer() {
         <SocialLinks />
       </div>
       <p className="mt-4">iPhones lacrados e semi-novos • Entrega em todo o Brasil 🇧🇷</p>
+      <p className="mt-2 text-foreground">{ENDERECO}</p>
+      <p className="mt-0.5">CNPJ {CNPJ}</p>
       <p className="mx-auto mt-3 max-w-2xl text-xs">
         Valores de parcelamento simulados com taxa média de mercado de{" "}
         {(monthlyRate(DEFAULT_INSTALLMENTS) * 100).toFixed(2)}% a.m. em {DEFAULT_INSTALLMENTS}x e{" "}
