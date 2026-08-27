@@ -106,8 +106,8 @@ export function PixCheckout({
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            O código expira em 2 minutos. Após o pagamento, a análise é concluída em até 10
-            minutos e você recebe o retorno por WhatsApp.
+            O código expira em 2 minutos. Após o pagamento, a análise é concluída e você recebe o
+            retorno por WhatsApp.
           </p>
         </div>
       </div>
