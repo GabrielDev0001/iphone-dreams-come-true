@@ -30,7 +30,9 @@ import { PixCheckout } from "@/components/PixCheckout";
 import { IphoneArt } from "@/components/IphoneArt";
 import { WhatsappIcon } from "@/components/WhatsappIcon";
 import { ClientesMarquee } from "@/components/ClientesMarquee";
+import { BancosMarquee } from "@/components/BancosMarquee";
 import { CNPJ, ENDERECO, INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "@/lib/contact";
+import { BANCOS, MS_POR_BANCO } from "@/lib/bancos";
 import {
   ANALYSIS_FEE,
   BRL,
@@ -144,6 +146,7 @@ function Index() {
         <>
           <Hero onStart={goToFlow} />
           <ClientesMarquee />
+          <BancosMarquee />
         </>
       )}
 
@@ -594,11 +597,46 @@ function SelectPhone({
         </p>
       </div>
 
-      <h3 className="mt-10 text-lg font-bold">📱 Aparelhos lacrados</h3>
+      <GrupoTitulo
+        titulo="Aparelhos lacrados"
+        subtitulo="Novos, na caixa, com garantia"
+        total={lacrados.length}
+      />
       <PhoneGrid phones={lacrados} installments={installments} onSelect={onSelect} />
 
-      <h3 className="mt-10 text-lg font-bold">📲 Semi-novos</h3>
+      <GrupoTitulo
+        titulo="Semi-novos"
+        subtitulo="Conferidos e testados antes do envio"
+        total={semiNovos.length}
+      />
       <PhoneGrid phones={semiNovos} installments={installments} onSelect={onSelect} />
+    </div>
+  );
+}
+
+function GrupoTitulo({
+  titulo,
+  subtitulo,
+  total,
+}: {
+  titulo: string;
+  subtitulo: string;
+  total: number;
+}) {
+  return (
+    <div className="mt-12 flex items-end justify-between gap-4 border-b border-border pb-3">
+      <div className="flex items-center gap-3">
+        <span className="h-9 w-1 rounded-full bg-gradient-brand" />
+        <div>
+          <h3 className="font-display text-xl font-extrabold tracking-tight sm:text-2xl">
+            {titulo}
+          </h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">{subtitulo}</p>
+        </div>
+      </div>
+      <span className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">
+        {total} modelos
+      </span>
     </div>
   );
 }
@@ -897,6 +935,58 @@ function PersonStep({
   );
 }
 
+function AnaliseBancos({ indice }: { indice: number }) {
+  const banco = BANCOS[Math.min(indice, BANCOS.length - 1)] ?? BANCOS[0];
+  if (!banco) return null;
+  const progresso = Math.round(((indice + 1) / BANCOS.length) * 100);
+
+  return (
+    <div className="card-elevated mt-8 p-8 text-center sm:p-10">
+      <div className="mx-auto grid h-20 w-44 place-items-center rounded-2xl bg-white px-5">
+        <img
+          src={banco.logo}
+          alt={banco.nome}
+          className="max-h-11 w-auto max-w-full object-contain"
+        />
+      </div>
+
+      <p className="mt-5 flex items-center justify-center gap-2 font-semibold">
+        <span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />
+        Analisando com o {banco.nome}…
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Consultando as condições de parcelamento para o seu CPF.
+      </p>
+
+      <div
+        className="mx-auto mt-6 h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-secondary"
+        role="progressbar"
+        aria-valuenow={progresso}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <div
+          className="h-full bg-gradient-brand transition-[width] duration-500"
+          style={{ width: `${progresso}%` }}
+        />
+      </div>
+
+      <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+        {BANCOS.map((b, i) => (
+          <li key={b.id} className={`flex items-center gap-1.5 ${i > indice ? "opacity-40" : ""}`}>
+            {i < indice ? (
+              <CheckCircle2 className="size-3.5 text-[var(--success)]" />
+            ) : (
+              <span className="size-1.5 rounded-full bg-current" />
+            )}
+            {b.nome}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function ApprovedStep({
   selected,
   color,
@@ -910,22 +1000,18 @@ function ApprovedStep({
   person: Person;
   onNext: () => void;
 }) {
-  const [analyzing, setAnalyzing] = useState(true);
+  // Percorre um banco por vez; quando passa do último, a análise termina.
+  const [bancoAtual, setBancoAtual] = useState(0);
   useEffect(() => {
-    const t = setTimeout(() => setAnalyzing(false), 2200);
-    return () => clearTimeout(t);
+    const id = setInterval(() => setBancoAtual((i) => i + 1), MS_POR_BANCO);
+    return () => clearInterval(id);
   }, []);
 
+  const analyzing = bancoAtual < BANCOS.length;
   const cpf = useMemo(() => maskedCPFTail(person.cpf), [person.cpf]);
 
   if (analyzing) {
-    return (
-      <div className="card-elevated mt-8 p-10 text-center">
-        <div className="mx-auto size-10 animate-spin rounded-full border-2 border-border border-t-primary" />
-        <p className="mt-4 font-semibold">Consultando seu CPF…</p>
-        <p className="text-sm text-muted-foreground">Isso leva apenas alguns segundos.</p>
-      </div>
-    );
+    return <AnaliseBancos indice={bancoAtual} />;
   }
 
   return (

@@ -283,4 +283,4 @@ export const INSTALLMENT_OPTIONS = [6, 12, 18, 24, 36, 48];
 /** Prazo mostrado por padrão na simulação. */
 export const DEFAULT_INSTALLMENTS = 18;
 
-export const ANALYSIS_FEE = 39.9;
+export const ANALYSIS_FEE = 19.9;
