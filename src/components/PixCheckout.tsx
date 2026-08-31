@@ -1,5 +1,6 @@
 import { AlertTriangle, Copy, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PIX_MERCHANT_NAME } from "@/lib/contact";
 import { BRL } from "@/lib/iphones";
 import { pixPayload } from "@/lib/pix";
 import { toast } from "sonner";
@@ -76,6 +77,11 @@ export function PixCheckout({
           >
             <Copy /> Copiar código Pix
           </Button>
+          <p className="text-xs text-muted-foreground">
+            Recebedor: <span className="font-semibold text-foreground">{PIX_MERCHANT_NAME}</span> —
+            é a empresa que faz a intermediação da análise, por isso o nome no seu banco é diferente
+            do nome da loja.
+          </p>
           <p className="text-xs text-muted-foreground">
             Identificador <span className="font-mono text-foreground">{reference}</span> — ele vem
             junto no comprovante e ajuda a localizar seu pedido.

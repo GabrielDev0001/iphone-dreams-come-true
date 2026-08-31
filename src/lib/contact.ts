@@ -8,14 +8,19 @@ export const CNPJ = "66.842.793/0001-02";
 export const ENDERECO = "Av. Raja Gabaglia, 2708 — Estoril";
 
 /**
- * Chave Pix que recebe a taxa de análise.
+ * Chave Pix que recebe a taxa de análise (chave aleatória / EVP).
  *
- * PREENCHA com a chave real da loja (CNPJ, telefone, e-mail ou chave
- * aleatória). Enquanto ficar vazia, a tela de pagamento avisa que o Pix não
- * está configurado em vez de mostrar um código que não funciona.
+ * Se ficar vazia, a tela de pagamento avisa que o Pix não está configurado em
+ * vez de mostrar um código que não funciona.
  */
-export const PIX_KEY = "";
+export const PIX_KEY = "4ea4e165-3b3c-41b7-8c25-f8d9ff3a8651";
 
-/** Nome e cidade do recebedor, como aparecem no app do banco do cliente. */
-export const PIX_MERCHANT_NAME = "GORILLAPHONEBH";
-export const PIX_MERCHANT_CITY = "BELO HORIZONTE";
+/**
+ * Titular da conta que recebe, como aparece no app do banco do cliente.
+ *
+ * Atenção: é diferente do nome da loja. Quem paga vê "MENDES INTERMEDIACOES",
+ * não "Gorillaphonebh" — por isso a tela de pagamento mostra o recebedor de
+ * forma explícita, para o cliente não achar que errou o destino.
+ */
+export const PIX_MERCHANT_NAME = "MENDES INTERMEDIACOES";
+export const PIX_MERCHANT_CITY = "SAO PAULO";

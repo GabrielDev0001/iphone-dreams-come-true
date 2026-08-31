@@ -62,7 +62,7 @@ export function pixPayload({
 
   const semCrc =
     campo("00", "01") +
-    campo("01", "12") + // pagamento único, não reutilizável
+    campo("01", "11") + // código estático, ligado a uma chave fixa
     campo("26", merchantAccount) +
     campo("52", "0000") +
     campo("53", "986") +

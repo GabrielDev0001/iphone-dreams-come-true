@@ -246,7 +246,7 @@ export const orderTotal = (selection: Selection, withCombo: boolean) =>
   selection.storage.price + (withCombo ? ACCESSORY_COMBO.price : 0);
 
 /** Taxa cobrada para a equipe rodar a análise de crédito. */
-export const ANALYSIS_FEE = 39.9;
+export const ANALYSIS_FEE = 19.9;
 
 /** Prazo informado ao cliente para o retorno da análise. */
 export const ANALYSIS_SLA = "até 24 horas úteis";
