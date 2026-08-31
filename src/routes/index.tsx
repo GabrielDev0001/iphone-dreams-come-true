@@ -684,15 +684,17 @@ function Summary({
   selection,
   combo,
   installments,
+  className,
 }: {
   selection: Selection;
   combo: boolean;
   installments: number;
+  className?: string | undefined;
 }) {
   const total = orderTotal(selection, combo);
   const parcela = installmentValue(total, installments);
   return (
-    <div className="card-elevated h-fit p-5">
+    <div className={`card-elevated h-fit p-5 ${className ?? ""}`}>
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Seu pedido</p>
       <div className="mt-3 flex items-center gap-3">
         <PhonePhoto model={selection.model} color={selection.color} className="h-20 w-auto" />
@@ -744,7 +746,8 @@ function AccessoriesStep({
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
-      <div className="card-elevated p-6 sm:p-8">
+      {/* No celular o resumo vem primeiro; no desktop volta para a coluna da direita. */}
+      <div className="card-elevated order-2 p-6 sm:p-8 lg:order-1">
         <h2 className="flex items-center gap-2 text-xl font-bold">
           <Package className="size-5 text-primary" /> Acessórios e parcelamento
         </h2>
@@ -801,7 +804,12 @@ function AccessoriesStep({
           </Button>
         </div>
       </div>
-      <Summary selection={selection} combo={combo} installments={installments} />
+      <Summary
+        selection={selection}
+        combo={combo}
+        installments={installments}
+        className="order-1 lg:order-2"
+      />
     </div>
   );
 }
