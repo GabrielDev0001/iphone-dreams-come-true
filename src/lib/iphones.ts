@@ -216,8 +216,7 @@ export const storageAt = (model: PhoneModel, index: number): StorageOption =>
   model.storages[index] ?? model.storages[0] ?? { storage: "—", price: 0 };
 
 /** Menor preço do modelo — usado para ordenar a vitrine. */
-export const fromPrice = (model: PhoneModel) =>
-  Math.min(...model.storages.map((s) => s.price));
+export const fromPrice = (model: PhoneModel) => Math.min(...model.storages.map((s) => s.price));
 
 export const byPriceAsc = (a: PhoneModel, b: PhoneModel) => fromPrice(a) - fromPrice(b);
 
@@ -245,6 +244,12 @@ export const ACCESSORY_COMBO = {
 /** Valor total do pedido: aparelho + combo (quando marcado). */
 export const orderTotal = (selection: Selection, withCombo: boolean) =>
   selection.storage.price + (withCombo ? ACCESSORY_COMBO.price : 0);
+
+/** Taxa cobrada para a equipe rodar a análise de crédito. */
+export const ANALYSIS_FEE = 39.9;
+
+/** Prazo informado ao cliente para o retorno da análise. */
+export const ANALYSIS_SLA = "até 24 horas úteis";
 
 /**
  * Taxas médias de maquininha / crediário (juros compostos ao mês).

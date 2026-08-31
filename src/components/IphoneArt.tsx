@@ -22,7 +22,7 @@ export function IphoneArt({
 }: {
   color: string;
   shape: PhoneShape;
-  className?: string;
+  className?: string | undefined;
 }) {
   const uid = useId().replace(/:/g, "");
   const gloss = `gloss-${uid}`;

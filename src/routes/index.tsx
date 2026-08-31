@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   BadgeCheck,
   Building2,
@@ -27,13 +28,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ConsultaBancos } from "@/components/ConsultaBancos";
 import { PhonePhoto } from "@/components/PhonePhoto";
+import { PixCheckout } from "@/components/PixCheckout";
 import { WhatsappIcon } from "@/components/WhatsappIcon";
 import { ClientesMarquee } from "@/components/ClientesMarquee";
 import { BancosMarquee } from "@/components/BancosMarquee";
 import { CNPJ, ENDERECO, INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "@/lib/contact";
 import {
   ACCESSORY_COMBO,
+  ANALYSIS_FEE,
+  ANALYSIS_SLA,
   BRL,
   DEFAULT_INSTALLMENTS,
   INSTALLMENT_OPTIONS,
@@ -223,7 +228,7 @@ function Index() {
         )}
 
         {step === 4 && selection && (
-          <OrderSentStep
+          <CreditAnalysisStep
             selection={selection}
             combo={combo}
             installments={installments}
@@ -450,7 +455,7 @@ function TrustStrip() {
   );
 }
 
-const STEP_LABELS = ["iPhone", "Acessórios", "Endereço", "Dados", "Pedido"];
+const STEP_LABELS = ["iPhone", "Acessórios", "Endereço", "Dados", "Análise"];
 
 function Stepper({ step }: { step: Step }) {
   return (
@@ -676,40 +681,127 @@ function GrupoTitulo({
 }
 
 function Summary({
-  selected,
-  color,
+  selection,
+  combo,
   installments,
 }: {
-  selected: Iphone;
-  color: PhoneColor | null;
+  selection: Selection;
+  combo: boolean;
   installments: number;
 }) {
-  const parcela = installmentValue(selected.price, installments);
+  const total = orderTotal(selection, combo);
+  const parcela = installmentValue(total, installments);
   return (
-    <div className="card-elevated p-5">
+    <div className="card-elevated h-fit p-5">
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Seu pedido</p>
       <div className="mt-3 flex items-center gap-3">
-        <IphoneArt
-          color={(color ?? colorAt(selected, 0)).hex}
-          shape={phoneShape(selected.name)}
-          className="h-20 w-auto"
-        />
+        <PhonePhoto model={selection.model} color={selection.color} className="h-20 w-auto" />
         <div>
           <p className="font-display text-lg leading-tight font-bold">
-            {selected.name} · {selected.storage}
+            {selection.model.name} · {selection.storage.storage}
           </p>
-          {color && <p className="mt-1 text-sm text-muted-foreground">Cor: {color.name}</p>}
+          <p className="mt-1 text-sm text-muted-foreground">Cor: {selection.color.name}</p>
         </div>
       </div>
       <p className="mt-3 text-sm text-muted-foreground">
-        {selected.condition === "lacrado" ? "Lacrado" : "Semi-novo"} • à vista {BRL(selected.price)}
+        {selection.model.condition === "lacrado" ? "Lacrado" : "Semi-novo"} • aparelho{" "}
+        {BRL(selection.storage.price)}
       </p>
-      <p className="mt-3 text-xl font-bold text-gradient-brand">
+      {combo && (
+        <p className="mt-1 text-sm text-muted-foreground">
+          + {ACCESSORY_COMBO.label} {BRL(ACCESSORY_COMBO.price)}
+        </p>
+      )}
+      <p className="mt-3 text-sm text-muted-foreground">à vista no Pix {BRL(total)}</p>
+      <p className="mt-1 text-xl font-bold text-gradient-brand">
         {installments}x de {BRL(parcela)}
       </p>
       <p className="text-xs text-muted-foreground">
-        Total parcelado {BRL(totalValue(selected.price, installments))}
+        Total parcelado {BRL(totalValue(total, installments))}
       </p>
+    </div>
+  );
+}
+
+function AccessoriesStep({
+  selection,
+  combo,
+  onCombo,
+  installments,
+  onInstallments,
+  onBack,
+  onNext,
+}: {
+  selection: Selection;
+  combo: boolean;
+  onCombo: (v: boolean) => void;
+  installments: number;
+  onInstallments: (n: number) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  const total = orderTotal(selection, combo);
+
+  return (
+    <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="card-elevated p-6 sm:p-8">
+        <h2 className="flex items-center gap-2 text-xl font-bold">
+          <Package className="size-5 text-primary" /> Acessórios e parcelamento
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Proteja o aparelho e escolha em quantas vezes quer pagar. Você ainda pode voltar e trocar
+          o modelo.
+        </p>
+
+        <button
+          type="button"
+          aria-pressed={combo}
+          onClick={() => onCombo(!combo)}
+          className={`mt-6 flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
+            combo ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+          }`}
+        >
+          <span
+            className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border ${
+              combo ? "border-primary bg-primary text-primary-foreground" : "border-border"
+            }`}
+          >
+            {combo && <BadgeCheck className="size-4" />}
+          </span>
+          <span className="flex-1">
+            <span className="block font-semibold">{ACCESSORY_COMBO.label}</span>
+            <span className="mt-0.5 block text-sm text-muted-foreground">
+              {ACCESSORY_COMBO.description}
+            </span>
+            <span className="mt-1 block text-sm font-semibold">
+              + {BRL(ACCESSORY_COMBO.price)} no total
+            </span>
+          </span>
+        </button>
+
+        <div className="mt-6">
+          <p className="flex items-center gap-2 text-sm font-semibold">
+            <CreditCard className="size-4 text-primary" /> Em quantas vezes?
+          </p>
+          <div className="mt-3">
+            <InstallmentPicker value={installments} onChange={onInstallments} />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Taxa aplicada: {(monthlyRate(installments) * 100).toFixed(2)}% a.m. — {installments}x de{" "}
+            {BRL(installmentValue(total, installments))}
+          </p>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft /> Voltar
+          </Button>
+          <Button variant="hero" size="lg" onClick={onNext}>
+            Continuar
+          </Button>
+        </div>
+      </div>
+      <Summary selection={selection} combo={combo} installments={installments} />
     </div>
   );
 }
@@ -746,16 +838,16 @@ function Field({
 }
 
 function AddressStep({
-  selected,
-  color,
+  selection,
+  combo,
   installments,
   address,
   onChange,
   onBack,
   onNext,
 }: {
-  selected: Iphone;
-  color: PhoneColor | null;
+  selection: Selection;
+  combo: boolean;
   installments: number;
   address: Address;
   onChange: (a: Address) => void;
@@ -846,7 +938,7 @@ function AddressStep({
           </Button>
         </div>
       </div>
-      <Summary selected={selected} color={color} installments={installments} />
+      <Summary selection={selection} combo={combo} installments={installments} />
     </div>
   );
 }
@@ -884,168 +976,138 @@ function ChoiceButtons({
 }
 
 function PersonStep({
+  selection,
+  combo,
+  installments,
   person,
   onChange,
   onBack,
-  onNext,
+  onSubmit,
 }: {
+  selection: Selection;
+  combo: boolean;
+  installments: number;
   person: Person;
   onChange: (p: Person) => void;
   onBack: () => void;
-  onNext: () => void;
+  onSubmit: () => void;
 }) {
   const valid =
     person.nome.trim().split(" ").length >= 2 &&
-    person.cpf.replace(/\D/g, "").length === 11 &&
+    isValidCPF(person.cpf) &&
     person.nascimento.length === 10 &&
     person.telefone.replace(/\D/g, "").length >= 10 &&
     /\S+@\S+\.\S+/.test(person.email) &&
     person.carteiraAssinada !== null;
 
   return (
-    <div className="mt-8 card-elevated p-6">
-      <h2 className="flex items-center gap-2 text-xl font-bold">
-        <UserRound className="size-5 text-primary" /> Seus dados
-      </h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Usamos seus dados apenas para a análise de crédito e emissão dos boletos.
-      </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="sm:col-span-2">
+    <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="card-elevated p-6">
+        <h2 className="flex items-center gap-2 text-xl font-bold">
+          <UserRound className="size-5 text-primary" /> Seus dados
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Usamos seus dados apenas para a análise de crédito e emissão dos boletos.
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field
+              label="Nome completo"
+              value={person.nome}
+              onChange={(v) => onChange({ ...person, nome: v })}
+            />
+          </div>
           <Field
-            label="Nome completo"
-            value={person.nome}
-            onChange={(v) => onChange({ ...person, nome: v })}
+            label="CPF"
+            inputMode="numeric"
+            placeholder="000.000.000-00"
+            value={person.cpf}
+            onChange={(v) => onChange({ ...person, cpf: maskCPF(v) })}
           />
+          <Field
+            label="Data de nascimento"
+            inputMode="numeric"
+            placeholder="DD/MM/AAAA"
+            value={person.nascimento}
+            onChange={(v) => onChange({ ...person, nascimento: maskDate(v) })}
+          />
+          <Field
+            label="Telefone"
+            inputMode="tel"
+            placeholder="(00) 00000-0000"
+            value={person.telefone}
+            onChange={(v) => onChange({ ...person, telefone: maskPhone(v) })}
+          />
+          <Field
+            label="E-mail"
+            type="email"
+            inputMode="email"
+            value={person.email}
+            onChange={(v) => onChange({ ...person, email: v })}
+          />
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Você trabalha de carteira assinada?</Label>
+            <ChoiceButtons
+              value={person.carteiraAssinada}
+              onChange={(v) => onChange({ ...person, carteiraAssinada: v })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Se você é autônomo, MEI ou informal, responda “Não” — isso não impede a análise.
+            </p>
+          </div>
         </div>
-        <Field
-          label="CPF"
-          inputMode="numeric"
-          placeholder="000.000.000-00"
-          value={person.cpf}
-          onChange={(v) => onChange({ ...person, cpf: maskCPF(v) })}
-        />
-        <Field
-          label="Data de nascimento"
-          inputMode="numeric"
-          placeholder="DD/MM/AAAA"
-          value={person.nascimento}
-          onChange={(v) => onChange({ ...person, nascimento: maskDate(v) })}
-        />
-        <Field
-          label="Telefone"
-          inputMode="tel"
-          placeholder="(00) 00000-0000"
-          value={person.telefone}
-          onChange={(v) => onChange({ ...person, telefone: maskPhone(v) })}
-        />
-        <Field
-          label="E-mail"
-          type="email"
-          inputMode="email"
-          value={person.email}
-          onChange={(v) => onChange({ ...person, email: v })}
-        />
-        <div className="space-y-2 sm:col-span-2">
-          <Label>Você trabalha de carteira assinada?</Label>
-          <ChoiceButtons
-            value={person.carteiraAssinada}
-            onChange={(v) => onChange({ ...person, carteiraAssinada: v })}
-          />
-          <p className="text-xs text-muted-foreground">
-            Se você é autônomo, MEI ou informal, responda “Não” — isso não impede a análise.
-          </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft /> Voltar
+          </Button>
+          <Button variant="hero" size="lg" disabled={!valid} onClick={onSubmit}>
+            Enviar pedido
+          </Button>
         </div>
       </div>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft /> Voltar
-        </Button>
-        <Button variant="hero" size="lg" disabled={!valid} onClick={onNext}>
-          Analisar meu crédito
-        </Button>
-      </div>
+      <Summary selection={selection} combo={combo} installments={installments} />
     </div>
   );
 }
 
-function AnaliseBancos({ indice }: { indice: number }) {
-  const banco = BANCOS[Math.min(indice, BANCOS.length - 1)] ?? BANCOS[0];
-  if (!banco) return null;
-  const progresso = Math.round(((indice + 1) / BANCOS.length) * 100);
-
+function InfoLinha({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card-elevated mt-8 p-8 text-center sm:p-10">
-      <div className="mx-auto grid h-20 w-44 place-items-center rounded-2xl bg-white px-5">
-        <img
-          src={banco.logo}
-          alt={banco.nome}
-          className="max-h-11 w-auto max-w-full object-contain"
-        />
-      </div>
-
-      <p className="mt-5 flex items-center justify-center gap-2 font-semibold">
-        <span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />
-        Analisando com o {banco.nome}…
-      </p>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Consultando as condições de parcelamento para o seu CPF.
-      </p>
-
-      <div
-        className="mx-auto mt-6 h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-secondary"
-        role="progressbar"
-        aria-valuenow={progresso}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div
-          className="h-full bg-gradient-brand transition-[width] duration-500"
-          style={{ width: `${progresso}%` }}
-        />
-      </div>
-
-      <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-        {BANCOS.map((b, i) => (
-          <li key={b.id} className={`flex items-center gap-1.5 ${i > indice ? "opacity-40" : ""}`}>
-            {i < indice ? (
-              <CheckCircle2 className="size-3.5 text-[var(--success)]" />
-            ) : (
-              <span className="size-1.5 rounded-full bg-current" />
-            )}
-            {b.nome}
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-wrap justify-between gap-2 border-b border-border py-2 last:border-0">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-semibold">{value}</span>
     </div>
   );
 }
 
-function ApprovedStep({
-  selected,
-  color,
+function CreditAnalysisStep({
+  selection,
+  combo,
   installments,
   person,
-  onNext,
+  address,
+  protocolo,
+  affiliate,
 }: {
-  selected: Iphone;
-  color: PhoneColor | null;
+  selection: Selection;
+  combo: boolean;
   installments: number;
   person: Person;
-  onNext: () => void;
+  address: Address;
+  protocolo: string;
+  affiliate: string | null;
 }) {
-  // Percorre um banco por vez; quando passa do último, a análise termina.
-  const [bancoAtual, setBancoAtual] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setBancoAtual((i) => i + 1), MS_POR_BANCO);
-    return () => clearInterval(id);
-  }, []);
-
-  const analyzing = bancoAtual < BANCOS.length;
+  const total = orderTotal(selection, combo);
+  const parcela = installmentValue(total, installments);
   const cpf = useMemo(() => maskedCPFTail(person.cpf), [person.cpf]);
+  const primeiroNome = person.nome.trim().split(" ")[0] ?? "";
 
-  if (analyzing) {
-    return <AnaliseBancos indice={bancoAtual} />;
+  async function copiarProtocolo() {
+    try {
+      await navigator.clipboard.writeText(protocolo);
+      toast.success("Protocolo copiado");
+    } catch {
+      toast.error("Não foi possível copiar — anote o protocolo");
+    }
   }
 
   return (
@@ -1053,36 +1115,119 @@ function ApprovedStep({
       <div className="card-elevated p-6 sm:p-8">
         <CheckCircle2 className="size-10 text-[var(--success)]" />
         <h2 className="mt-4 text-2xl font-bold">
-          Parabéns, {person.nome.split(" ")[0]}! Seu iPhone está{" "}
-          <span className="text-gradient-brand">pré-aprovado</span>
+          Solicitação registrada{primeiroNome ? `, ${primeiroNome}` : ""}
         </h2>
         <p className="mt-2 text-muted-foreground">
-          Pré-aprovação registrada para o CPF{" "}
-          <span className="font-semibold text-foreground">{cpf}</span> — {selected.name}{" "}
-          {selected.storage}
-          {color ? ` na cor ${color.name}` : ""} em {installments}x de{" "}
-          {BRL(installmentValue(selected.price, installments))}.
+          Guardamos seu pedido do {selection.model.name} {selection.storage.storage} na cor{" "}
+          {selection.color.name}. O próximo passo é a análise de crédito.
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Vínculo informado:{" "}
-          <span className="font-semibold text-foreground">
-            {person.carteiraAssinada ? "carteira assinada" : "sem carteira assinada"}
-          </span>
-        </p>
+
         <div className="mt-6 rounded-2xl border border-primary/40 bg-primary/10 p-5">
-          <p className="font-semibold">
-            Para dar continuidade na análise, faça o pagamento do custo de análise
+          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+            Protocolo do pedido
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Valor único de {BRL(ANALYSIS_FEE)} via Pix, usado para a consulta completa e reserva do
-            aparelho.
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <span className="font-display text-2xl font-extrabold tracking-tight">{protocolo}</span>
+            <Button variant="outline" size="sm" onClick={() => void copiarProtocolo()}>
+              <Copy className="size-4" /> Copiar
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-border pt-6">
+          <h3 className="flex items-center gap-2 text-lg font-bold">
+            <Building2 className="size-5 text-primary" /> Como funciona a análise
+          </h3>
+
+          <div className="mt-4 rounded-2xl border border-border bg-secondary/40 p-5">
+            <p className="text-sm leading-relaxed">
+              A análise de crédito é feita pela nossa equipe e tem um{" "}
+              <span className="font-semibold text-foreground">
+                custo de {BRL(ANALYSIS_FEE)}, pago antes da consulta
+              </span>
+              . O retorno sai em {ANALYSIS_SLA}.
+            </p>
+            <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[var(--warning,#eab308)]" />
+              <span>
+                Seu crédito ainda não foi avaliado — nada foi consultado até aqui. A análise pode
+                ser <span className="font-semibold text-foreground">aprovada ou recusada</span>, e a
+                taxa cobre o trabalho da consulta, não a aprovação.
+              </span>
+            </p>
+          </div>
+
+          <ConsultaBancos />
+
+          <ol className="mt-5 space-y-3">
+            {[
+              `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
+              `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
+              `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
+              "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
+            ].map((texto, i) => (
+              <li key={texto} className="flex gap-3 text-sm">
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
+                  {i + 1}
+                </span>
+                <span className="pt-0.5">{texto}</span>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-6">
+            <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
+          </div>
+
+          <Button size="xl" className="mt-6 bg-[#25D366] text-white hover:bg-[#25D366]/90" asChild>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+              <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
+            </a>
+          </Button>
+        </div>
+
+        <div className="mt-8 border-t border-border pt-6">
+          <h3 className="flex items-center gap-2 text-sm font-bold">
+            <Smartphone className="size-4 text-primary" /> Resumo do pedido
+          </h3>
+          <div className="mt-2">
+            <InfoLinha
+              label="Aparelho"
+              value={`${selection.model.name} ${selection.storage.storage} · ${selection.color.name}`}
+            />
+            <InfoLinha
+              label="Condição"
+              value={selection.model.condition === "lacrado" ? "Lacrado" : "Semi-novo"}
+            />
+            {combo && <InfoLinha label="Acessórios" value={ACCESSORY_COMBO.label} />}
+            <InfoLinha label="À vista no Pix" value={BRL(total)} />
+            <InfoLinha
+              label="Parcelamento pretendido"
+              value={`${installments}x de ${BRL(parcela)} (total ${BRL(totalValue(total, installments))})`}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Os valores de parcela são simulação — as condições finais dependem da análise.
           </p>
         </div>
-        <Button variant="hero" size="xl" className="mt-6" onClick={onNext}>
-          Gerar Pix da análise
-        </Button>
+
+        <div className="mt-6">
+          <h3 className="flex items-center gap-2 text-sm font-bold">
+            <Truck className="size-4 text-primary" /> Entrega e contato
+          </h3>
+          <div className="mt-2">
+            <InfoLinha
+              label="Endereço"
+              value={`${address.rua}, ${address.numero}${address.bairro ? ` — ${address.bairro}` : ""}`}
+            />
+            <InfoLinha label="Cidade" value={`${address.cidade}/${address.uf} · ${address.cep}`} />
+            <InfoLinha label="CPF" value={cpf} />
+            <InfoLinha label="Telefone" value={person.telefone} />
+            {affiliate && <InfoLinha label="Indicação" value={affiliate} />}
+          </div>
+        </div>
       </div>
-      <Summary selected={selected} color={color} installments={installments} />
+      <Summary selection={selection} combo={combo} installments={installments} />
     </div>
   );
 }

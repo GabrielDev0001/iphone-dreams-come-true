@@ -1,86 +1,61 @@
-import { useEffect, useMemo, useState } from "react";
-import { Copy, QrCode, RefreshCw, Timer } from "lucide-react";
+import { AlertTriangle, Copy, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BRL } from "@/lib/iphones";
+import { pixPayload } from "@/lib/pix";
 import { toast } from "sonner";
 
-function fakePixPayload(seed: string, amount: number) {
-  const base = `00020126BR.GOV.BCB.PIX0136${seed.replace(/\W/g, "").padEnd(32, "0").slice(0, 32)}5204000053039865802BR5915GORILLAPHONEBH6009SAOPAULO54${String(
-    amount.toFixed(2),
-  ).padStart(7, "0")}6304`;
-  let h = 0;
-  for (const c of base) h = (h * 31 + c.charCodeAt(0)) % 65535;
-  return base + h.toString(16).toUpperCase().padStart(4, "0");
-}
-
+/**
+ * Pix da taxa de análise. O código é um BR Code real, montado a partir da chave
+ * configurada em `lib/contact.ts` — se a chave não estiver preenchida a tela
+ * avisa, em vez de mostrar um código que o banco recusaria.
+ */
 export function PixCheckout({
   amount,
-  seed,
+  reference,
   affiliate,
 }: {
   amount: number;
-  seed: string;
+  reference: string;
   affiliate?: string | null;
 }) {
-  const [attempt, setAttempt] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(120);
+  const payload = pixPayload({ amount, reference });
 
-  const payload = useMemo(
-    () => fakePixPayload(seed + attempt + (affiliate ?? ""), amount),
-    [seed, attempt, amount, affiliate],
-  );
-
-  useEffect(() => {
-    setSecondsLeft(120);
-    const id = setInterval(() => setSecondsLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
-    return () => clearInterval(id);
-  }, [attempt]);
-
-  const expired = secondsLeft === 0;
-  const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
-  const ss = String(secondsLeft % 60).padStart(2, "0");
+  if (!payload) {
+    return (
+      <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-5">
+        <p className="flex items-center gap-2 font-semibold text-destructive">
+          <AlertTriangle className="size-5" /> Pix não configurado
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Preencha <span className="font-mono text-foreground">PIX_KEY</span> em{" "}
+          <span className="font-mono text-foreground">src/lib/contact.ts</span> com a chave da loja
+          para que o código de pagamento seja gerado.
+        </p>
+      </div>
+    );
+  }
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(payload)}`;
 
   return (
-    <div className="card-elevated p-6 sm:p-8">
+    <div className="rounded-2xl border border-border p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <QrCode className="size-4 text-primary" />
           Pagamento via Pix
         </div>
-        <div
-          className={`flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${
-            expired ? "bg-destructive/15 text-destructive" : "bg-primary/10 text-primary"
-          }`}
-        >
-          <Timer className="size-4" />
-          {expired ? "Pix expirado" : `${mm}:${ss}`}
-        </div>
+        <p className="text-2xl font-bold">{BRL(amount)}</p>
       </div>
 
-      <p className="mt-4 text-2xl font-bold">{BRL(amount)}</p>
-      <p className="text-sm text-muted-foreground">
-        Custo de análise de crédito — obrigatório para dar continuidade na aprovação.
-      </p>
-
-      <div className="mt-6 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
-        <div className="relative mx-auto w-fit rounded-2xl bg-foreground p-3">
+      <div className="mt-5 grid gap-6 sm:grid-cols-[auto_1fr] sm:items-center">
+        <div className="mx-auto w-fit rounded-2xl bg-white p-3">
           <img
             src={qrUrl}
-            alt="QR Code do Pix para o custo de análise"
-            width={220}
-            height={220}
+            alt="QR Code do Pix da taxa de análise"
+            width={200}
+            height={200}
             loading="lazy"
-            className={expired ? "opacity-20 blur-sm" : ""}
           />
-          {expired && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Button variant="hero" size="sm" onClick={() => setAttempt((a) => a + 1)}>
-                <RefreshCw /> Gerar novo Pix
-              </Button>
-            </div>
-          )}
         </div>
 
         <div className="space-y-3">
@@ -92,23 +67,24 @@ export function PixCheckout({
             variant="hero"
             size="lg"
             className="w-full"
-            disabled={expired}
             onClick={() => {
-              navigator.clipboard?.writeText(payload);
-              toast.success("Código Pix copiado!");
+              navigator.clipboard
+                ?.writeText(payload)
+                .then(() => toast.success("Código Pix copiado!"))
+                .catch(() => toast.error("Não foi possível copiar — use o QR Code"));
             }}
           >
             <Copy /> Copiar código Pix
           </Button>
+          <p className="text-xs text-muted-foreground">
+            Identificador <span className="font-mono text-foreground">{reference}</span> — ele vem
+            junto no comprovante e ajuda a localizar seu pedido.
+          </p>
           {affiliate && (
             <p className="text-xs text-muted-foreground">
-              Venda atribuída ao afiliado <span className="text-primary">{affiliate}</span>
+              Indicação de <span className="text-primary">{affiliate}</span>
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
-            O código expira em 2 minutos. Após o pagamento, a análise é concluída e você recebe o
-            retorno por WhatsApp.
-          </p>
         </div>
       </div>
     </div>
