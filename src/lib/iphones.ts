@@ -5,13 +5,19 @@ export type PhoneColor = { name: string; hex: string };
 /** Formato do módulo de câmera — usado pela arte do aparelho. */
 export type PhoneShape = "pro" | "base" | "air";
 
-export type Iphone = {
+/** Uma capacidade do mesmo aparelho: muda só o armazenamento e o preço. */
+export type StorageOption = { storage: string; price: number };
+
+/**
+ * Um modelo agrupa todas as capacidades do mesmo aparelho, para o cliente
+ * escolher 256 ou 512 sem trocar de card.
+ */
+export type PhoneModel = {
   id: string;
   name: string;
-  storage: string;
-  price: number;
   condition: Condition;
   colors: PhoneColor[];
+  storages: StorageOption[];
 };
 
 const PRO_17: PhoneColor[] = [
@@ -81,176 +87,164 @@ const BASE_14: PhoneColor[] = [
   { name: "Vermelho", hex: "#B2393E" },
 ];
 
-export const IPHONES: Iphone[] = [
+export const MODELS: PhoneModel[] = [
   {
-    id: "17pm-512",
+    id: "17-pro-max",
     name: "iPhone 17 Pro Max",
-    storage: "512GB",
-    price: 8350,
     condition: "lacrado",
     colors: PRO_17,
+    storages: [
+      { storage: "256GB", price: 7200 },
+      { storage: "512GB", price: 8350 },
+    ],
   },
   {
-    id: "17pm-256",
-    name: "iPhone 17 Pro Max",
-    storage: "256GB",
-    price: 7200,
-    condition: "lacrado",
-    colors: PRO_17,
-  },
-  {
-    id: "17p-256",
+    id: "17-pro",
     name: "iPhone 17 Pro",
-    storage: "256GB",
-    price: 6900,
     condition: "lacrado",
     colors: PRO_17,
+    storages: [{ storage: "256GB", price: 6900 }],
   },
   {
-    id: "17-256-a",
-    name: "iPhone 17",
-    storage: "256GB",
-    price: 5100,
-    condition: "lacrado",
-    colors: BASE_17,
-  },
-  {
-    id: "17-256-b",
-    name: "iPhone 17",
-    storage: "256GB",
-    price: 4850,
-    condition: "lacrado",
-    colors: BASE_17,
-  },
-  {
-    id: "17air-256",
+    id: "17-air",
     name: "iPhone 17 Air",
-    storage: "256GB",
-    price: 5390,
     condition: "lacrado",
     colors: AIR_17,
+    storages: [{ storage: "256GB", price: 5390 }],
+  },
+  {
+    id: "17",
+    name: "iPhone 17",
+    condition: "lacrado",
+    colors: BASE_17,
+    storages: [{ storage: "256GB", price: 4850 }],
   },
 
   {
-    id: "14-128",
-    name: "iPhone 14",
-    storage: "128GB",
-    price: 2099,
+    id: "16-pro-max",
+    name: "iPhone 16 Pro Max",
     condition: "semi-novo",
-    colors: BASE_14,
+    colors: PRO_16,
+    storages: [{ storage: "256GB", price: 5099 }],
   },
   {
-    id: "14-256",
-    name: "iPhone 14",
-    storage: "256GB",
-    price: 2299,
+    id: "16-pro",
+    name: "iPhone 16 Pro",
     condition: "semi-novo",
-    colors: BASE_14,
+    colors: PRO_16,
+    storages: [
+      { storage: "128GB", price: 4249 },
+      { storage: "256GB", price: 4499 },
+    ],
   },
   {
-    id: "14plus-128",
-    name: "iPhone 14 Plus",
-    storage: "128GB",
-    price: 2200,
+    id: "16-plus",
+    name: "iPhone 16 Plus",
     condition: "semi-novo",
-    colors: BASE_14,
+    colors: BASE_16,
+    storages: [{ storage: "128GB", price: 3799 }],
   },
   {
-    id: "14pro-128",
-    name: "iPhone 14 Pro",
-    storage: "128GB",
-    price: 2750,
+    id: "16",
+    name: "iPhone 16",
     condition: "semi-novo",
-    colors: PRO_14,
+    colors: BASE_16,
+    storages: [{ storage: "128GB", price: 3550 }],
   },
   {
-    id: "14pm-256",
-    name: "iPhone 14 Pro Max",
-    storage: "256GB",
-    price: 3399,
+    id: "15-pro-max",
+    name: "iPhone 15 Pro Max",
     condition: "semi-novo",
-    colors: PRO_14,
+    colors: PRO_15,
+    storages: [{ storage: "256GB", price: 4050 }],
   },
   {
-    id: "15-128",
+    id: "15-pro",
+    name: "iPhone 15 Pro",
+    condition: "semi-novo",
+    colors: PRO_15,
+    storages: [{ storage: "256GB", price: 3550 }],
+  },
+  {
+    id: "15",
     name: "iPhone 15",
-    storage: "128GB",
-    price: 2699,
     condition: "semi-novo",
     colors: BASE_15,
+    storages: [{ storage: "128GB", price: 2699 }],
   },
   {
-    id: "15pro-256",
-    name: "iPhone 15 Pro",
-    storage: "256GB",
-    price: 3550,
+    id: "14-pro-max",
+    name: "iPhone 14 Pro Max",
     condition: "semi-novo",
-    colors: PRO_15,
+    colors: PRO_14,
+    storages: [{ storage: "256GB", price: 3399 }],
   },
   {
-    id: "15pm-256",
-    name: "iPhone 15 Pro Max",
-    storage: "256GB",
-    price: 4050,
+    id: "14-pro",
+    name: "iPhone 14 Pro",
     condition: "semi-novo",
-    colors: PRO_15,
+    colors: PRO_14,
+    storages: [{ storage: "128GB", price: 2750 }],
   },
   {
-    id: "16-128",
-    name: "iPhone 16",
-    storage: "128GB",
-    price: 3550,
+    id: "14-plus",
+    name: "iPhone 14 Plus",
     condition: "semi-novo",
-    colors: BASE_16,
+    colors: BASE_14,
+    storages: [{ storage: "128GB", price: 2200 }],
   },
   {
-    id: "16plus-128",
-    name: "iPhone 16 Plus",
-    storage: "128GB",
-    price: 3799,
+    id: "14",
+    name: "iPhone 14",
     condition: "semi-novo",
-    colors: BASE_16,
-  },
-  {
-    id: "16pro-128",
-    name: "iPhone 16 Pro",
-    storage: "128GB",
-    price: 4249,
-    condition: "semi-novo",
-    colors: PRO_16,
-  },
-  {
-    id: "16pro-256",
-    name: "iPhone 16 Pro",
-    storage: "256GB",
-    price: 4499,
-    condition: "semi-novo",
-    colors: PRO_16,
-  },
-  {
-    id: "16pm-256",
-    name: "iPhone 16 Pro Max",
-    storage: "256GB",
-    price: 5099,
-    condition: "semi-novo",
-    colors: PRO_16,
+    colors: BASE_14,
+    storages: [
+      { storage: "128GB", price: 2099 },
+      { storage: "256GB", price: 2299 },
+    ],
   },
 ];
 
 export const FALLBACK_COLOR: PhoneColor = { name: "Preto", hex: "#2A2A2D" };
 
 /** Acesso seguro à cor (o tsconfig usa noUncheckedIndexedAccess). */
-export const colorAt = (phone: Iphone, index: number): PhoneColor =>
-  phone.colors[index] ?? phone.colors[0] ?? FALLBACK_COLOR;
+export const colorAt = (model: PhoneModel, index: number): PhoneColor =>
+  model.colors[index] ?? model.colors[0] ?? FALLBACK_COLOR;
 
-/** Do mais barato para o mais caro. */
-export const byPriceAsc = (a: Iphone, b: Iphone) => a.price - b.price;
+/** Acesso seguro à capacidade. */
+export const storageAt = (model: PhoneModel, index: number): StorageOption =>
+  model.storages[index] ?? model.storages[0] ?? { storage: "—", price: 0 };
+
+/** Menor preço do modelo — usado para ordenar a vitrine. */
+export const fromPrice = (model: PhoneModel) =>
+  Math.min(...model.storages.map((s) => s.price));
+
+export const byPriceAsc = (a: PhoneModel, b: PhoneModel) => fromPrice(a) - fromPrice(b);
 
 export function phoneShape(name: string): PhoneShape {
   if (name.includes("Air")) return "air";
   if (name.includes("Pro")) return "pro";
   return "base";
 }
+
+/** O que o cliente montou: aparelho + capacidade + cor. */
+export type Selection = {
+  model: PhoneModel;
+  storage: StorageOption;
+  color: PhoneColor;
+};
+
+/** Combo de acessórios opcional, somado ao valor financiado. */
+export const ACCESSORY_COMBO = {
+  id: "pelicula-capa",
+  label: "Película + capa transparente",
+  description: "Película de vidro aplicada e capa transparente antichoque, já instaladas no envio.",
+  price: 39,
+} as const;
+
+/** Valor total do pedido: aparelho + combo (quando marcado). */
+export const orderTotal = (selection: Selection, withCombo: boolean) =>
+  selection.storage.price + (withCombo ? ACCESSORY_COMBO.price : 0);
 
 /**
  * Taxas médias de maquininha / crediário (juros compostos ao mês).
@@ -283,4 +277,20 @@ export const INSTALLMENT_OPTIONS = [6, 12, 18, 24, 36, 48];
 /** Prazo mostrado por padrão na simulação. */
 export const DEFAULT_INSTALLMENTS = 18;
 
-export const ANALYSIS_FEE = 19.9;
+const DIACRITICS = /[̀-ͯ]/g;
+
+const slug = (v: string) =>
+  v
+    .normalize("NFD")
+    .replace(DIACRITICS, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+/**
+ * Caminho da foto real do aparelho naquela cor. Basta salvar o arquivo em
+ * `public/produtos/` com esse nome que ele passa a aparecer no lugar da
+ * ilustração — ver `public/produtos/README.md`.
+ */
+export const photoFor = (model: PhoneModel, color: PhoneColor) =>
+  `/produtos/${model.id}-${slug(color.name)}.jpg`;

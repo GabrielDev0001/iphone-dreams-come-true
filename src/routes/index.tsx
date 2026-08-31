@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Building2,
   CheckCircle2,
+  Copy,
   CreditCard,
   Instagram,
   MapPin,
@@ -26,29 +27,32 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { PixCheckout } from "@/components/PixCheckout";
-import { IphoneArt } from "@/components/IphoneArt";
+import { PhonePhoto } from "@/components/PhonePhoto";
 import { WhatsappIcon } from "@/components/WhatsappIcon";
 import { ClientesMarquee } from "@/components/ClientesMarquee";
 import { BancosMarquee } from "@/components/BancosMarquee";
 import { CNPJ, ENDERECO, INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "@/lib/contact";
-import { BANCOS, MS_POR_BANCO } from "@/lib/bancos";
 import {
-  ANALYSIS_FEE,
+  ACCESSORY_COMBO,
   BRL,
   DEFAULT_INSTALLMENTS,
   INSTALLMENT_OPTIONS,
-  IPHONES,
+  MODELS,
   byPriceAsc,
   colorAt,
   installmentValue,
   monthlyRate,
-  phoneShape,
+  orderTotal,
+  storageAt,
   totalValue,
-  type Iphone,
   type PhoneColor,
+  type PhoneModel,
+  type Selection,
+  type StorageOption,
 } from "@/lib/iphones";
+import { isValidCPF } from "@/lib/cpf";
 import { maskCEP, maskCPF, maskDate, maskPhone, maskedCPFTail } from "@/lib/format";
+import { toast } from "sonner";
 
 /** Vídeo de apresentação servido de public/. */
 const HERO_VIDEO_SRC = "/apresentacao.mp4";
@@ -91,11 +95,24 @@ type Person = {
   carteiraAssinada: boolean | null;
 };
 
+/** Código curto para o cliente citar no WhatsApp: GP + data + sequência do dia. */
+function novoProtocolo() {
+  const d = new Date();
+  const data = [
+    String(d.getFullYear()).slice(2),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("");
+  const seq = String(d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()).padStart(5, "0");
+  return `GP${data}-${seq}`;
+}
+
 function Index() {
   const [step, setStep] = useState<Step>(0);
-  const [selected, setSelected] = useState<Iphone | null>(null);
-  const [color, setColor] = useState<PhoneColor | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [combo, setCombo] = useState(false);
   const [installments, setInstallments] = useState(DEFAULT_INSTALLMENTS);
+  const [protocolo, setProtocolo] = useState("");
   const [address, setAddress] = useState<Address>({
     cep: "",
     rua: "",
@@ -126,11 +143,11 @@ function Index() {
   }, [step]);
 
   const lacrados = useMemo(
-    () => IPHONES.filter((p) => p.condition === "lacrado").sort(byPriceAsc),
+    () => MODELS.filter((m) => m.condition === "lacrado").sort(byPriceAsc),
     [],
   );
   const semiNovos = useMemo(
-    () => IPHONES.filter((p) => p.condition === "semi-novo").sort(byPriceAsc),
+    () => MODELS.filter((m) => m.condition === "semi-novo").sort(byPriceAsc),
     [],
   );
 
@@ -159,59 +176,62 @@ function Index() {
             semiNovos={semiNovos}
             installments={installments}
             onInstallments={setInstallments}
-            onSelect={(p, c) => {
-              setSelected(p);
-              setColor(c);
+            onSelect={(sel) => {
+              setSelection(sel);
               setStep(1);
             }}
           />
         )}
 
-        {step === 1 && selected && (
-          <AddressStep
-            selected={selected}
-            color={color}
+        {step === 1 && selection && (
+          <AccessoriesStep
+            selection={selection}
+            combo={combo}
+            onCombo={setCombo}
             installments={installments}
-            address={address}
-            onChange={setAddress}
+            onInstallments={setInstallments}
             onBack={() => setStep(0)}
             onNext={() => setStep(2)}
           />
         )}
 
-        {step === 2 && (
-          <PersonStep
-            person={person}
-            onChange={setPerson}
+        {step === 2 && selection && (
+          <AddressStep
+            selection={selection}
+            combo={combo}
+            installments={installments}
+            address={address}
+            onChange={setAddress}
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
           />
         )}
 
-        {step === 3 && selected && (
-          <ApprovedStep
-            selected={selected}
-            color={color}
+        {step === 3 && selection && (
+          <PersonStep
+            selection={selection}
+            combo={combo}
             installments={installments}
             person={person}
-            onNext={() => setStep(4)}
+            onChange={setPerson}
+            onBack={() => setStep(2)}
+            onSubmit={() => {
+              setProtocolo(novoProtocolo());
+              setStep(4);
+            }}
           />
         )}
 
-        {step === 4 && selected && (
-          <div className="mt-8 space-y-6">
-            <PixCheckout
-              amount={ANALYSIS_FEE}
-              seed={person.cpf || selected.id}
-              affiliate={affiliate}
-            />
-            <button
-              onClick={() => setStep(3)}
-              className="mx-auto flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="size-4" /> Voltar
-            </button>
-          </div>
+        {step === 4 && selection && (
+          <OrderSentStep
+            selection={selection}
+            combo={combo}
+            installments={installments}
+            person={person}
+            address={address}
+            protocolo={protocolo}
+            affiliate={affiliate}
+          />
         )}
       </section>
 
@@ -430,7 +450,7 @@ function TrustStrip() {
   );
 }
 
-const STEP_LABELS = ["iPhone", "Endereço", "Dados", "Pré-aprovação", "Pagamento"];
+const STEP_LABELS = ["iPhone", "Acessórios", "Endereço", "Dados", "Pedido"];
 
 function Stepper({ step }: { step: Step }) {
   return (
@@ -475,41 +495,56 @@ function InstallmentPicker({ value, onChange }: { value: number; onChange: (n: n
 }
 
 function PhoneCard({
-  phone,
+  model,
   installments,
   onSelect,
 }: {
-  phone: Iphone;
+  model: PhoneModel;
   installments: number;
-  onSelect: (color: PhoneColor) => void;
+  onSelect: (sel: Selection) => void;
 }) {
   const [colorIndex, setColorIndex] = useState(0);
-  const color = colorAt(phone, colorIndex);
-  const parcela = installmentValue(phone.price, installments);
+  const [storageIndex, setStorageIndex] = useState(0);
+  const color = colorAt(model, colorIndex);
+  const storage = storageAt(model, storageIndex);
+  const parcela = installmentValue(storage.price, installments);
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)] transition-transform hover:-translate-y-1 hover:border-primary/50">
       <div className="relative bg-secondary/50 px-3 pt-3 pb-1">
         <span className="absolute top-2 left-2 rounded-md bg-brand px-2 py-1 text-[9px] font-bold tracking-wide text-brand-foreground uppercase">
-          {phone.condition === "lacrado" ? "Lacrado" : "Semi-novo"}
+          {model.condition === "lacrado" ? "Lacrado" : "Semi-novo"}
         </span>
-        <IphoneArt
-          color={color.hex}
-          shape={phoneShape(phone.name)}
-          className="mx-auto h-36 w-auto sm:h-44"
-        />
+        <PhonePhoto model={model} color={color} className="mx-auto h-36 w-auto sm:h-44" />
       </div>
 
       <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <h4 className="text-sm leading-snug font-semibold sm:text-base">
-          {phone.name} <span className="text-muted-foreground">{phone.storage}</span>
-        </h4>
+        <h4 className="text-sm leading-snug font-semibold sm:text-base">{model.name}</h4>
 
-        <p className="mt-2 text-[11px] text-muted-foreground">
+        <p className="mt-3 text-[11px] text-muted-foreground">Armazenamento</p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {model.storages.map((s, i) => (
+            <button
+              key={s.storage}
+              type="button"
+              aria-pressed={i === storageIndex}
+              onClick={() => setStorageIndex(i)}
+              className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                i === storageIndex
+                  ? "border-primary bg-primary/15 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {s.storage}
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-3 text-[11px] text-muted-foreground">
           Cor: <span className="font-semibold text-foreground">{color.name}</span>
         </p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {phone.colors.map((c, i) => (
+          {model.colors.map((c, i) => (
             <button
               key={c.name}
               type="button"
@@ -529,7 +564,7 @@ function PhoneCard({
 
         <div className="mt-3">
           <p className="text-[11px] text-muted-foreground">à vista no Pix</p>
-          <p className="text-lg font-extrabold sm:text-xl">{BRL(phone.price)}</p>
+          <p className="text-lg font-extrabold sm:text-xl">{BRL(storage.price)}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             ou{" "}
             <span className="font-semibold text-foreground">
@@ -539,7 +574,11 @@ function PhoneCard({
           </p>
         </div>
 
-        <Button variant="hero" className="mt-3 w-full" onClick={() => onSelect(color)}>
+        <Button
+          variant="hero"
+          className="mt-3 w-full"
+          onClick={() => onSelect({ model, storage, color })}
+        >
           Escolher
         </Button>
       </div>
@@ -548,23 +587,18 @@ function PhoneCard({
 }
 
 function PhoneGrid({
-  phones,
+  models,
   installments,
   onSelect,
 }: {
-  phones: Iphone[];
+  models: PhoneModel[];
   installments: number;
-  onSelect: (p: Iphone, c: PhoneColor) => void;
+  onSelect: (sel: Selection) => void;
 }) {
   return (
     <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-      {phones.map((p) => (
-        <PhoneCard
-          key={p.id}
-          phone={p}
-          installments={installments}
-          onSelect={(c) => onSelect(p, c)}
-        />
+      {models.map((m) => (
+        <PhoneCard key={m.id} model={m} installments={installments} onSelect={onSelect} />
       ))}
     </div>
   );
@@ -577,18 +611,18 @@ function SelectPhone({
   onInstallments,
   onSelect,
 }: {
-  lacrados: Iphone[];
-  semiNovos: Iphone[];
+  lacrados: PhoneModel[];
+  semiNovos: PhoneModel[];
   installments: number;
   onInstallments: (n: number) => void;
-  onSelect: (p: Iphone, c: PhoneColor) => void;
+  onSelect: (sel: Selection) => void;
 }) {
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold sm:text-3xl">Selecione o seu iPhone</h2>
       <p className="mt-2 text-muted-foreground">
-        Do mais barato ao mais caro. Escolha a cor no próprio card e o número de parcelas para ver o
-        valor — as taxas aumentam conforme o prazo.
+        Do mais barato ao mais caro. Escolha o armazenamento e a cor no próprio card e o número de
+        parcelas para ver o valor — as taxas aumentam conforme o prazo.
       </p>
       <div className="mt-5">
         <InstallmentPicker value={installments} onChange={onInstallments} />
@@ -602,14 +636,14 @@ function SelectPhone({
         subtitulo="Novos, na caixa, com garantia"
         total={lacrados.length}
       />
-      <PhoneGrid phones={lacrados} installments={installments} onSelect={onSelect} />
+      <PhoneGrid models={lacrados} installments={installments} onSelect={onSelect} />
 
       <GrupoTitulo
         titulo="Semi-novos"
         subtitulo="Conferidos e testados antes do envio"
         total={semiNovos.length}
       />
-      <PhoneGrid phones={semiNovos} installments={installments} onSelect={onSelect} />
+      <PhoneGrid models={semiNovos} installments={installments} onSelect={onSelect} />
     </div>
   );
 }
