@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
-import { IphoneArt } from "@/components/IphoneArt";
-import { photoFor, phoneShape, type PhoneColor, type PhoneModel } from "@/lib/iphones";
+import { photoFor, type PhoneColor, type PhoneModel } from "@/lib/iphones";
 
 /**
- * Mostra a foto real do aparelho na cor escolhida. Enquanto a loja não tiver
- * a foto daquela combinação em `public/produtos/`, cai na ilustração vetorial —
- * assim a vitrine nunca fica com espaço vazio.
+ * Foto do aparelho. É uma foto por modelo — a mesma em todas as cores, já que a
+ * loja só tem a variante escura fotografada. A ilustração vetorial não é mais
+ * usada aqui; para voltar a ter foto por cor, ver `public/produtos/README.md`.
  */
 export function PhonePhoto({
   model,
@@ -14,24 +12,14 @@ export function PhonePhoto({
 }: {
   model: PhoneModel;
   color: PhoneColor;
-  className?: string;
+  className?: string | undefined;
 }) {
-  const src = photoFor(model, color);
-  const [failed, setFailed] = useState(false);
-
-  // Trocar de cor/modelo precisa dar nova chance à foto.
-  useEffect(() => setFailed(false), [src]);
-
-  if (failed) {
-    return <IphoneArt color={color.hex} shape={phoneShape(model.name)} className={className} />;
-  }
-
   return (
     <img
-      src={src}
+      src={photoFor(model)}
       alt={`${model.name} na cor ${color.name}`}
       loading="lazy"
-      onError={() => setFailed(true)}
+      decoding="async"
       className={`object-contain ${className ?? ""}`}
     />
   );

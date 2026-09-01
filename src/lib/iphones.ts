@@ -282,20 +282,9 @@ export const INSTALLMENT_OPTIONS = [6, 12, 18, 24, 36, 48];
 /** Prazo mostrado por padrão na simulação. */
 export const DEFAULT_INSTALLMENTS = 18;
 
-const DIACRITICS = /[̀-ͯ]/g;
-
-const slug = (v: string) =>
-  v
-    .normalize("NFD")
-    .replace(DIACRITICS, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
 /**
- * Caminho da foto real do aparelho naquela cor. Basta salvar o arquivo em
- * `public/produtos/` com esse nome que ele passa a aparecer no lugar da
- * ilustração — ver `public/produtos/README.md`.
+ * Caminho da foto do aparelho. É **uma foto por modelo**, usada em todas as
+ * cores — a loja tem só a variante escura fotografada, e a ilustração vetorial
+ * ficou fora da vitrine. Ver `public/produtos/README.md`.
  */
-export const photoFor = (model: PhoneModel, color: PhoneColor) =>
-  `/produtos/${model.id}-${slug(color.name)}.jpg`;
+export const photoFor = (model: PhoneModel) => `/produtos/${model.id}.webp`;
