@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -1095,59 +1095,38 @@ function InfoLinha({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Fases da última etapa: preparar o Pix, pagar a taxa, esperar e ver o retorno. */
-type FaseAnalise = "preparando" | "pix" | "esperando" | "pre-aprovado";
-
-/** Espera entre o envio dos dados e o Pix, onde o cliente vê as financeiras. */
-const MS_PREPARANDO_PIX = 6000;
-
-/** Espera entre o cliente confirmar o Pix e a tela de retorno aparecer. */
+/** Espera entre o envio dos dados e o retorno, onde o cliente vê as financeiras. */
 const MS_ESPERA_RETORNO = 6000;
 
-/** As duas fases de espera avançam sozinhas; as outras dependem do cliente. */
-const AVANCO_AUTOMATICO: Partial<Record<FaseAnalise, { ms: number; proxima: FaseAnalise }>> = {
-  preparando: { ms: MS_PREPARANDO_PIX, proxima: "pix" },
-  esperando: { ms: MS_ESPERA_RETORNO, proxima: "pre-aprovado" },
-};
-
 /**
- * Tela de espera usada duas vezes na última etapa: antes do Pix e depois do
- * pagamento.
+ * Tela de espera entre o envio dos dados e o retorno do pedido.
  *
  * O texto é deliberadamente neutro: nenhuma consulta acontece nesses segundos,
  * então a tela não diz que está consultando financeira nem que um atendente
  * está analisando o CPF agora.
  */
-function TelaEspera({
-  nome,
-  mensagem,
-  duracao,
-  children,
-}: {
-  nome: string;
-  mensagem: string;
-  duracao: number;
-  children?: ReactNode;
-}) {
+function EsperaRetorno({ nome }: { nome: string }) {
   return (
     <div className="card-elevated mt-8 p-8 text-center sm:p-12">
       <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary/10">
         <Loader2 className="size-7 animate-spin text-primary" />
       </span>
       <h2 className="mt-5 text-2xl font-bold">Um instante{nome ? `, ${nome}` : ""}…</h2>
-      <p className="mt-2 text-muted-foreground">{mensagem}</p>
+      <p className="mt-2 text-muted-foreground">Estamos realizando uma pré-analise no seu cpf.</p>
       <div
         className="mx-auto mt-7 h-2 max-w-md overflow-hidden rounded-full bg-secondary"
         role="progressbar"
-        aria-label={mensagem}
+        aria-label="Preparando o retorno do pedido"
       >
         <div
           className="barra-espera h-full bg-gradient-brand"
-          style={{ "--espera-retorno": `${duracao}ms` } as CSSProperties}
+          style={{ "--espera-retorno": `${MS_ESPERA_RETORNO}ms` } as CSSProperties}
         />
       </div>
 
-      {children && <div className="mx-auto max-w-xl text-left">{children}</div>}
+      <div className="mx-auto max-w-xl text-left">
+        <ConsultaBancos />
+      </div>
     </div>
   );
 }
@@ -1210,6 +1189,11 @@ function mensagemDaAnalise({
   ].join("\n");
 }
 
+/**
+ * Última etapa: depois da espera, tudo o que o cliente precisa fica numa página
+ * só, na ordem que a loja pediu — a pré-aprovação, o resumo do pedido, o Pix da
+ * taxa e, no fim, o botão para mandar o comprovante no WhatsApp.
+ */
 function CreditAnalysisStep({
   selection,
   combo,
@@ -1227,18 +1211,16 @@ function CreditAnalysisStep({
   protocolo: string;
   affiliate: string | null;
 }) {
-  const [fase, setFase] = useState<FaseAnalise>("preparando");
+  const [preparando, setPreparando] = useState(true);
   const total = orderTotal(selection, combo);
   const parcela = installmentValue(total, installments);
   const cpf = useMemo(() => maskedCPFTail(person.cpf), [person.cpf]);
   const primeiroNome = person.nome.trim().split(" ")[0] ?? "";
 
   useEffect(() => {
-    const avanco = AVANCO_AUTOMATICO[fase];
-    if (!avanco) return;
-    const id = setTimeout(() => setFase(avanco.proxima), avanco.ms);
+    const id = setTimeout(() => setPreparando(false), MS_ESPERA_RETORNO);
     return () => clearTimeout(id);
-  }, [fase]);
+  }, []);
 
   async function copiarProtocolo() {
     try {
@@ -1249,39 +1231,7 @@ function CreditAnalysisStep({
     }
   }
 
-  // As financeiras entram só na primeira espera: o texto do bloco fala do que
-  // vem depois do pagamento, então repeti-lo já pago ficaria fora de hora.
-  if (fase === "preparando")
-    return (
-      <TelaEspera
-        nome={primeiroNome}
-        mensagem="Estamos gerando o Pix da taxa de análise."
-        duracao={MS_PREPARANDO_PIX}
-      >
-        <ConsultaBancos />
-      </TelaEspera>
-    );
-
-  if (fase === "esperando")
-    return (
-      <TelaEspera
-        nome={primeiroNome}
-        mensagem="Estamos preparando o retorno do seu pedido."
-        duracao={MS_ESPERA_RETORNO}
-      />
-    );
-
-  const protocoloBox = (
-    <div className="mt-6 rounded-2xl border border-primary/40 bg-primary/10 p-5">
-      <p className="text-xs tracking-wide text-muted-foreground uppercase">Protocolo do pedido</p>
-      <div className="mt-1 flex flex-wrap items-center gap-3">
-        <span className="font-display text-2xl font-extrabold tracking-tight">{protocolo}</span>
-        <Button variant="outline" size="sm" onClick={() => void copiarProtocolo()}>
-          <Copy className="size-4" /> Copiar
-        </Button>
-      </div>
-    </div>
-  );
+  if (preparando) return <EsperaRetorno nome={primeiroNome} />;
 
   const conversa = linkWhatsapp(
     mensagemDaAnalise({
@@ -1297,71 +1247,61 @@ function CreditAnalysisStep({
 
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
-      <div className="card-elevated p-6 sm:p-8">
-        {fase === "pre-aprovado" ? (
-          <>
-            <CheckCircle2 className="size-10 text-[var(--success)]" />
-            <h2 className="mt-4 text-2xl font-bold">
-              Parabéns{primeiroNome ? `, ${primeiroNome}` : ""}! Seu pedido está{" "}
-              <span className="text-gradient-brand">pré-aprovado</span>
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Pré-aprovação registrada para o CPF{" "}
-              <span className="font-semibold text-foreground">{cpf}</span> — {selection.model.name}{" "}
-              {selection.storage.storage} na cor {selection.color.name} em {installments}x de{" "}
-              {BRL(parcela)}.
-            </p>
+      <div className="card-elevated p-6 sm:p-8 lg:col-start-1 lg:row-start-1">
+        <CheckCircle2 className="size-10 text-[var(--success)]" />
+        <h2 className="mt-4 text-2xl font-bold">
+          Parabéns{primeiroNome ? `, ${primeiroNome}` : ""}! Seu pedido está{" "}
+          <span className="text-gradient-brand">pré-aprovado</span>
+        </h2>
+        <p className="mt-2 text-muted-foreground">
+          Pré-aprovação registrada para o CPF{" "}
+          <span className="font-semibold text-foreground">{cpf}</span> — {selection.model.name}{" "}
+          {selection.storage.storage} na cor {selection.color.name} em {installments}x de{" "}
+          {BRL(parcela)}.
+        </p>
 
-            {protocoloBox}
+        <div className="mt-6 rounded-2xl border border-primary/40 bg-primary/10 p-5">
+          <p className="text-xs tracking-wide text-muted-foreground uppercase">
+            Protocolo do pedido
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <span className="font-display text-2xl font-extrabold tracking-tight">{protocolo}</span>
+            <Button variant="outline" size="sm" onClick={() => void copiarProtocolo()}>
+              <Copy className="size-4" /> Copiar
+            </Button>
+          </div>
+        </div>
+      </div>
 
-            <ol className="mt-5 space-y-3">
-              {[
-                `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
-                `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
-                "Confirmado, combinamos os boletos e a entrega.",
-              ].map((texto, i) => (
-                <li key={texto} className="flex gap-3 text-sm">
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
-                    {i + 1}
-                  </span>
-                  <span className="pt-0.5">{texto}</span>
-                </li>
-              ))}
-            </ol>
-          </>
-        ) : (
-          <>
-            <div>
-              <ol className="mt-5 space-y-3">
-                {[
-                  `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
-                  `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
-                  `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
-                  "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
-                ].map((texto, i) => (
-                  <li key={texto} className="flex gap-3 text-sm">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
-                      {i + 1}
-                    </span>
-                    <span className="pt-0.5">{texto}</span>
-                  </li>
-                ))}
-              </ol>
+      {/* No celular o resumo cai entre a pré-aprovação e o Pix, como a loja pediu;
+          no desktop ele volta a ser a coluna da direita. */}
+      <Summary
+        selection={selection}
+        combo={combo}
+        installments={installments}
+        className="lg:col-start-2 lg:row-start-1"
+      />
 
-              <div className="mt-6">
-                <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
-              </div>
+      <div className="card-elevated p-6 sm:p-8 lg:col-start-1 lg:row-start-2">
+        <ol className="space-y-3">
+          {[
+            `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
+            `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
+            `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
+            "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
+          ].map((texto, i) => (
+            <li key={texto} className="flex gap-3 text-sm">
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
+                {i + 1}
+              </span>
+              <span className="pt-0.5">{texto}</span>
+            </li>
+          ))}
+        </ol>
 
-              <Button
-                size="xl"
-                className="mt-6 w-full bg-success font-semibold text-background hover:bg-success/90"
-                onClick={() => setFase("esperando")}
-              >
-                <BadgeCheck className="size-5" /> Já fiz o pagamento
-              </Button>
-            </div>
-          </>
-        )}
+        <div className="mt-6">
+          <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
+        </div>
 
         <div className="mt-8 border-t border-border pt-6">
           <h3 className="flex items-center gap-2 text-sm font-bold">
@@ -1404,19 +1344,18 @@ function CreditAnalysisStep({
           </div>
         </div>
 
-        {fase === "pre-aprovado" && (
-          <Button
-            size="xl"
-            className="mt-8 w-full bg-[#25D366] text-white hover:bg-[#25D366]/90"
-            asChild
-          >
-            <a href={conversa} target="_blank" rel="noopener noreferrer">
-              <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
-            </a>
-          </Button>
-        )}
+        {/* O rótulo é longo: sem deixar quebrar, o botão estoura a largura do
+            celular e a página inteira passa a rolar para o lado. */}
+        <Button
+          size="xl"
+          className="mt-8 h-auto min-h-13 w-full bg-[#25D366] px-4 py-3 text-sm whitespace-normal text-white hover:bg-[#25D366]/90 sm:px-8 sm:text-base"
+          asChild
+        >
+          <a href={conversa} target="_blank" rel="noopener noreferrer">
+            <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
+          </a>
+        </Button>
       </div>
-      <Summary selection={selection} combo={combo} installments={installments} />
     </div>
   );
 }
