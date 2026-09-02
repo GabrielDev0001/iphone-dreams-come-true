@@ -221,3 +221,26 @@
     animation: none;
   }
 }
+
+/* Barra da tela de espera entre o pagamento e o retorno do pedido.
+   A duração vem de --espera-retorno, definida no componente. */
+@keyframes preencher-barra {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.barra-espera {
+  width: 0%;
+  animation: preencher-barra var(--espera-retorno, 6000ms) linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barra-espera {
+    width: 100%;
+    animation: none;
+  }
+}

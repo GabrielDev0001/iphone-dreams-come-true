@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -9,6 +9,7 @@ import {
   Copy,
   CreditCard,
   Instagram,
+  Loader2,
   MapPin,
   Package,
   ShieldCheck,
@@ -1087,6 +1088,41 @@ function InfoLinha({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** Fases da última etapa: pagar a taxa, esperar e ver o retorno. */
+type FaseAnalise = "pix" | "esperando" | "pre-aprovado";
+
+/** Espera entre o cliente confirmar o Pix e a tela de retorno aparecer. */
+const MS_ESPERA_RETORNO = 6000;
+
+/**
+ * Tela de espera entre a confirmação do pagamento e o retorno.
+ *
+ * O texto é deliberadamente neutro: nenhuma consulta acontece nesses segundos,
+ * então a tela não diz que está consultando financeira nem que um atendente
+ * está analisando o CPF agora.
+ */
+function EsperaRetorno({ nome }: { nome: string }) {
+  return (
+    <div className="card-elevated mt-8 p-8 text-center sm:p-12">
+      <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary/10">
+        <Loader2 className="size-7 animate-spin text-primary" />
+      </span>
+      <h2 className="mt-5 text-2xl font-bold">Um instante{nome ? `, ${nome}` : ""}…</h2>
+      <p className="mt-2 text-muted-foreground">Estamos preparando o retorno do seu pedido.</p>
+      <div
+        className="mx-auto mt-7 h-2 max-w-md overflow-hidden rounded-full bg-secondary"
+        role="progressbar"
+        aria-label="Preparando o retorno do pedido"
+      >
+        <div
+          className="barra-espera h-full bg-gradient-brand"
+          style={{ "--espera-retorno": `${MS_ESPERA_RETORNO}ms` } as CSSProperties}
+        />
+      </div>
+    </div>
+  );
+}
+
 function CreditAnalysisStep({
   selection,
   combo,
@@ -1104,10 +1140,17 @@ function CreditAnalysisStep({
   protocolo: string;
   affiliate: string | null;
 }) {
+  const [fase, setFase] = useState<FaseAnalise>("pix");
   const total = orderTotal(selection, combo);
   const parcela = installmentValue(total, installments);
   const cpf = useMemo(() => maskedCPFTail(person.cpf), [person.cpf]);
   const primeiroNome = person.nome.trim().split(" ")[0] ?? "";
+
+  useEffect(() => {
+    if (fase !== "esperando") return;
+    const id = setTimeout(() => setFase("pre-aprovado"), MS_ESPERA_RETORNO);
+    return () => clearTimeout(id);
+  }, [fase]);
 
   async function copiarProtocolo() {
     try {
@@ -1118,81 +1161,152 @@ function CreditAnalysisStep({
     }
   }
 
+  if (fase === "esperando") return <EsperaRetorno nome={primeiroNome} />;
+
+  const protocoloBox = (
+    <div className="mt-6 rounded-2xl border border-primary/40 bg-primary/10 p-5">
+      <p className="text-xs tracking-wide text-muted-foreground uppercase">Protocolo do pedido</p>
+      <div className="mt-1 flex flex-wrap items-center gap-3">
+        <span className="font-display text-2xl font-extrabold tracking-tight">{protocolo}</span>
+        <Button variant="outline" size="sm" onClick={() => void copiarProtocolo()}>
+          <Copy className="size-4" /> Copiar
+        </Button>
+      </div>
+    </div>
+  );
+
+  const botaoWhatsapp = (
+    <Button size="xl" className="mt-6 bg-[#25D366] text-white hover:bg-[#25D366]/90" asChild>
+      <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+        <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
+      </a>
+    </Button>
+  );
+
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className="card-elevated p-6 sm:p-8">
-        <CheckCircle2 className="size-10 text-[var(--success)]" />
-        <h2 className="mt-4 text-2xl font-bold">
-          Solicitação registrada{primeiroNome ? `, ${primeiroNome}` : ""}
-        </h2>
-        <p className="mt-2 text-muted-foreground">
-          Guardamos seu pedido do {selection.model.name} {selection.storage.storage} na cor{" "}
-          {selection.color.name}. O próximo passo é a análise de crédito.
-        </p>
-
-        <div className="mt-6 rounded-2xl border border-primary/40 bg-primary/10 p-5">
-          <p className="text-xs tracking-wide text-muted-foreground uppercase">
-            Protocolo do pedido
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <span className="font-display text-2xl font-extrabold tracking-tight">{protocolo}</span>
-            <Button variant="outline" size="sm" onClick={() => void copiarProtocolo()}>
-              <Copy className="size-4" /> Copiar
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-8 border-t border-border pt-6">
-          <h3 className="flex items-center gap-2 text-lg font-bold">
-            <Building2 className="size-5 text-primary" /> Como funciona a análise
-          </h3>
-
-          <div className="mt-4 rounded-2xl border border-border bg-secondary/40 p-5">
-            <p className="text-sm leading-relaxed">
-              A análise de crédito é feita pela nossa equipe e tem um{" "}
-              <span className="font-semibold text-foreground">
-                custo de {BRL(ANALYSIS_FEE)}, pago antes da consulta
-              </span>
-              . O retorno sai em {ANALYSIS_SLA}.
+        {fase === "pre-aprovado" ? (
+          <>
+            <CheckCircle2 className="size-10 text-[var(--success)]" />
+            <h2 className="mt-4 text-2xl font-bold">
+              Parabéns{primeiroNome ? `, ${primeiroNome}` : ""}! Seu pedido está{" "}
+              <span className="text-gradient-brand">pré-aprovado</span>
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              Pré-aprovação registrada para o CPF{" "}
+              <span className="font-semibold text-foreground">{cpf}</span> — {selection.model.name}{" "}
+              {selection.storage.storage} na cor {selection.color.name} em {installments}x de{" "}
+              {BRL(parcela)}.
             </p>
-            <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
-              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[var(--warning,#eab308)]" />
-              <span>
-                Seu crédito ainda não foi avaliado — nada foi consultado até aqui. A análise pode
-                ser <span className="font-semibold text-foreground">aprovada ou recusada</span>, e a
-                taxa cobre o trabalho da consulta, não a aprovação.
-              </span>
-            </p>
-          </div>
 
-          <ConsultaBancos />
+            {protocoloBox}
 
-          <ol className="mt-5 space-y-3">
-            {[
-              `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
-              `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
-              `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
-              "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
-            ].map((texto, i) => (
-              <li key={texto} className="flex gap-3 text-sm">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
-                  {i + 1}
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/40 p-5">
+              <p className="text-sm leading-relaxed">
+                Pré-aprovado quer dizer que{" "}
+                <span className="font-semibold text-foreground">seu pedido entrou na fila</span> e o
+                aparelho fica reservado. A consulta nas financeiras é feita por uma pessoa da nossa
+                equipe — o retorno com as condições finais sai em {ANALYSIS_SLA}, pelo WhatsApp.
+              </p>
+              <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[var(--warning,#eab308)]" />
+                <span>
+                  Enquanto a equipe não confirma, as parcelas acima continuam sendo simulação — o
+                  valor final depende da financeira que aprovar.
                 </span>
-                <span className="pt-0.5">{texto}</span>
-              </li>
-            ))}
-          </ol>
+              </p>
+            </div>
 
-          <div className="mt-6">
-            <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
-          </div>
+            <ol className="mt-5 space-y-3">
+              {[
+                `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
+                `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
+                "Confirmado, combinamos os boletos e a entrega.",
+              ].map((texto, i) => (
+                <li key={texto} className="flex gap-3 text-sm">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
+                    {i + 1}
+                  </span>
+                  <span className="pt-0.5">{texto}</span>
+                </li>
+              ))}
+            </ol>
 
-          <Button size="xl" className="mt-6 bg-[#25D366] text-white hover:bg-[#25D366]/90" asChild>
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
-              <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
-            </a>
-          </Button>
-        </div>
+            {botaoWhatsapp}
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="size-10 text-[var(--success)]" />
+            <h2 className="mt-4 text-2xl font-bold">
+              Solicitação registrada{primeiroNome ? `, ${primeiroNome}` : ""}
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              Guardamos seu pedido do {selection.model.name} {selection.storage.storage} na cor{" "}
+              {selection.color.name}. O próximo passo é a análise de crédito.
+            </p>
+
+            {protocoloBox}
+
+            <div className="mt-8 border-t border-border pt-6">
+              <h3 className="flex items-center gap-2 text-lg font-bold">
+                <Building2 className="size-5 text-primary" /> Como funciona a análise
+              </h3>
+
+              <div className="mt-4 rounded-2xl border border-border bg-secondary/40 p-5">
+                <p className="text-sm leading-relaxed">
+                  A análise de crédito é feita pela nossa equipe e tem um{" "}
+                  <span className="font-semibold text-foreground">
+                    custo de {BRL(ANALYSIS_FEE)}, pago antes da consulta
+                  </span>
+                  . O retorno sai em {ANALYSIS_SLA}.
+                </p>
+                <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[var(--warning,#eab308)]" />
+                  <span>
+                    Seu crédito ainda não foi avaliado — nada foi consultado até aqui. A análise
+                    pode ser{" "}
+                    <span className="font-semibold text-foreground">aprovada ou recusada</span>, e a
+                    taxa cobre o trabalho da consulta, não a aprovação.
+                  </span>
+                </p>
+              </div>
+
+              <ConsultaBancos />
+
+              <ol className="mt-5 space-y-3">
+                {[
+                  `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
+                  `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
+                  `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
+                  "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
+                ].map((texto, i) => (
+                  <li key={texto} className="flex gap-3 text-sm">
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
+                      {i + 1}
+                    </span>
+                    <span className="pt-0.5">{texto}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="mt-6">
+                <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
+              </div>
+
+              <Button
+                variant="hero"
+                size="xl"
+                className="mt-6 w-full"
+                onClick={() => setFase("esperando")}
+              >
+                <BadgeCheck className="size-5" /> Já fiz o pagamento
+              </Button>
+
+              {botaoWhatsapp}
+            </div>
+          </>
+        )}
 
         <div className="mt-8 border-t border-border pt-6">
           <h3 className="flex items-center gap-2 text-sm font-bold">
