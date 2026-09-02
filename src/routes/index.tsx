@@ -1246,14 +1246,6 @@ function CreditAnalysisStep({
     }),
   );
 
-  const botaoWhatsapp = (
-    <Button size="xl" className="mt-6 bg-[#25D366] text-white hover:bg-[#25D366]/90" asChild>
-      <a href={conversa} target="_blank" rel="noopener noreferrer">
-        <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
-      </a>
-    </Button>
-  );
-
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className="card-elevated p-6 sm:p-8">
@@ -1304,7 +1296,15 @@ function CreditAnalysisStep({
               ))}
             </ol>
 
-            {botaoWhatsapp}
+            <Button
+              size="xl"
+              className="mt-6 bg-[#25D366] text-white hover:bg-[#25D366]/90"
+              asChild
+            >
+              <a href={conversa} target="_blank" rel="noopener noreferrer">
+                <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
+              </a>
+            </Button>
           </>
         ) : (
           <>
@@ -1366,15 +1366,12 @@ function CreditAnalysisStep({
               </div>
 
               <Button
-                variant="hero"
                 size="xl"
-                className="mt-6 w-full"
+                className="mt-6 w-full bg-success font-semibold text-background hover:bg-success/90"
                 onClick={() => setFase("esperando")}
               >
                 <BadgeCheck className="size-5" /> Já fiz o pagamento
               </Button>
-
-              {botaoWhatsapp}
             </div>
           </>
         )}
