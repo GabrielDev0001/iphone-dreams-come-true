@@ -17,7 +17,6 @@ import {
   UserRound,
   Volume2,
 } from "lucide-react";
-import logoAsset from "@/assets/gorillaphone-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,6 +62,14 @@ import { toast } from "sonner";
 /** Vídeo de apresentação servido de public/. */
 const HERO_VIDEO_SRC = "/apresentacao.mp4";
 const HERO_VIDEO_POSTER = "/apresentacao-capa.jpg";
+
+/**
+ * Logo recortada rente à arte (801x609): o PNG original trazia ~100px de sobra
+ * só à esquerda, o que empurrava tudo — a palavra GORILLAPHONE principalmente —
+ * para a direita da caixa branca. Com a moldura removida, o padding simétrico
+ * do container já centraliza.
+ */
+const LOGO = "/gorillaphone-logo.png";
 
 const TITLE = "Gorillaphonebh — iPhone parcelado no boleto em até 48x";
 const DESCRIPTION =
@@ -295,12 +302,12 @@ function Header({ affiliate }: { affiliate: string | null }) {
         <div className="flex items-center gap-4">
           <a href="/" className="shrink-0">
             {/* A logo é arte preta: precisa de fundo claro para aparecer no tema escuro. */}
-            <span className="inline-flex rounded-2xl bg-white px-2.5 py-1.5 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.9)]">
+            <span className="inline-flex rounded-2xl bg-white p-2 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.9)]">
               <img
-                src={logoAsset.url}
+                src={LOGO}
                 alt="Gorillaphone — logo"
-                width={900}
-                height={611}
+                width={801}
+                height={609}
                 className="h-14 w-auto sm:h-18"
               />
             </span>
@@ -1461,12 +1468,12 @@ function FloatingWhatsapp() {
 function Footer() {
   return (
     <footer className="border-t border-border px-4 py-10 text-center text-sm text-muted-foreground">
-      <span className="mx-auto mb-4 inline-flex rounded-2xl bg-white px-4 py-3">
+      <span className="mx-auto mb-4 inline-flex rounded-2xl bg-white p-3">
         <img
-          src={logoAsset.url}
+          src={LOGO}
           alt="Gorillaphone"
-          width={900}
-          height={611}
+          width={801}
+          height={609}
           className="h-20 w-auto sm:h-24"
         />
       </span>
