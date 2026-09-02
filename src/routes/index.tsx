@@ -57,6 +57,7 @@ import {
   type StorageOption,
 } from "@/lib/iphones";
 import { isValidCPF } from "@/lib/cpf";
+import { linkWhatsapp } from "@/lib/whatsapp";
 import { maskCEP, maskCPF, maskDate, maskPhone, maskedCPFTail } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -1123,6 +1124,64 @@ function EsperaRetorno({ nome }: { nome: string }) {
   );
 }
 
+/**
+ * Mensagem que o cliente leva para o WhatsApp ao final da análise.
+ *
+ * O site não tem backend: essa conversa é o único caminho por onde os dados do
+ * pedido chegam até a loja, então a mensagem vai completa e já no formato que a
+ * equipe precisa para abrir a consulta.
+ */
+function mensagemDaAnalise({
+  selection,
+  combo,
+  installments,
+  person,
+  address,
+  protocolo,
+  affiliate,
+}: {
+  selection: Selection;
+  combo: boolean;
+  installments: number;
+  person: Person;
+  address: Address;
+  protocolo: string;
+  affiliate: string | null;
+}): string {
+  const total = orderTotal(selection, combo);
+  const parcela = installmentValue(total, installments);
+  const complemento = address.bairro ? ` — ${address.bairro}` : "";
+
+  return [
+    `Olá! Fiz o pagamento da taxa de análise de ${BRL(ANALYSIS_FEE)} e quero seguir com o pedido.`,
+    "",
+    `*Protocolo:* ${protocolo}`,
+    "",
+    "*Aparelho*",
+    `${selection.model.name} ${selection.storage.storage} — ${selection.color.name} (${
+      selection.model.condition === "lacrado" ? "lacrado" : "semi-novo"
+    })`,
+    ...(combo ? [`Acessórios: ${ACCESSORY_COMBO.label}`] : []),
+    `À vista no Pix: ${BRL(total)}`,
+    `Parcelamento pretendido: ${installments}x de ${BRL(parcela)}`,
+    "",
+    "*Meus dados*",
+    `Nome: ${person.nome}`,
+    `CPF: ${person.cpf}`,
+    `Nascimento: ${person.nascimento}`,
+    `Telefone: ${person.telefone}`,
+    `E-mail: ${person.email}`,
+    `Carteira assinada: ${person.carteiraAssinada ? "sim" : "não"}`,
+    "",
+    "*Entrega*",
+    `${address.rua}, ${address.numero}${complemento}`,
+    `${address.cidade}/${address.uf} — CEP ${address.cep}`,
+    ...(affiliate ? ["", `Indicação: ${affiliate}`] : []),
+    "",
+    "Segue o comprovante do Pix.",
+  ].join("\n");
+}
+
 function CreditAnalysisStep({
   selection,
   combo,
@@ -1175,9 +1234,21 @@ function CreditAnalysisStep({
     </div>
   );
 
+  const conversa = linkWhatsapp(
+    mensagemDaAnalise({
+      selection,
+      combo,
+      installments,
+      person,
+      address,
+      protocolo,
+      affiliate,
+    }),
+  );
+
   const botaoWhatsapp = (
     <Button size="xl" className="mt-6 bg-[#25D366] text-white hover:bg-[#25D366]/90" asChild>
-      <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+      <a href={conversa} target="_blank" rel="noopener noreferrer">
         <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
       </a>
     </Button>

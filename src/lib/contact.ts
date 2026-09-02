@@ -24,3 +24,12 @@ export const PIX_KEY = "4ea4e165-3b3c-41b7-8c25-f8d9ff3a8651";
  */
 export const PIX_MERCHANT_NAME = "MENDES INTERMEDIACOES";
 export const PIX_MERCHANT_CITY = "SAO PAULO";
+
+/**
+ * Número que recebe as mensagens do fluxo — só dígitos, com DDI e DDD
+ * (ex.: 5531999998888).
+ *
+ * Enquanto ficar vazio o site cai no link curto acima, que nem sempre respeita a
+ * mensagem pré-preenchida.
+ */
+export const WHATSAPP_NUMERO = "";
