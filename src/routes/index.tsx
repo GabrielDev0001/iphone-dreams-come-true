@@ -1283,27 +1283,7 @@ function CreditAnalysisStep({
       />
 
       <div className="card-elevated p-6 sm:p-8 lg:col-start-1 lg:row-start-2">
-        <ol className="space-y-3">
-          {[
-            `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
-            `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
-            `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
-            "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
-          ].map((texto, i) => (
-            <li key={texto} className="flex gap-3 text-sm">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
-                {i + 1}
-              </span>
-              <span className="pt-0.5">{texto}</span>
-            </li>
-          ))}
-        </ol>
-
-        <div className="mt-6">
-          <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
-        </div>
-
-        <div className="mt-8 border-t border-border pt-6">
+        <div>
           <h3 className="flex items-center gap-2 text-sm font-bold">
             <Smartphone className="size-4 text-primary" /> Resumo do pedido
           </h3>
@@ -1342,6 +1322,26 @@ function CreditAnalysisStep({
             <InfoLinha label="Telefone" value={person.telefone} />
             {affiliate && <InfoLinha label="Indicação" value={affiliate} />}
           </div>
+        </div>
+
+        <ol className="mt-8 space-y-3 border-t border-border pt-6">
+          {[
+            `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
+            `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
+            `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
+            "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
+          ].map((texto, i) => (
+            <li key={texto} className="flex gap-3 text-sm">
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
+                {i + 1}
+              </span>
+              <span className="pt-0.5">{texto}</span>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-6">
+          <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
         </div>
 
         {/* O rótulo é longo: sem deixar quebrar, o botão estoura a largura do
