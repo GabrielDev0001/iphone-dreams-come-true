@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -1095,41 +1095,59 @@ function InfoLinha({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Fases da última etapa: pagar a taxa, esperar e ver o retorno. */
-type FaseAnalise = "pix" | "esperando" | "pre-aprovado";
+/** Fases da última etapa: preparar o Pix, pagar a taxa, esperar e ver o retorno. */
+type FaseAnalise = "preparando" | "pix" | "esperando" | "pre-aprovado";
+
+/** Espera entre o envio dos dados e o Pix, onde o cliente vê as financeiras. */
+const MS_PREPARANDO_PIX = 6000;
 
 /** Espera entre o cliente confirmar o Pix e a tela de retorno aparecer. */
 const MS_ESPERA_RETORNO = 6000;
 
+/** As duas fases de espera avançam sozinhas; as outras dependem do cliente. */
+const AVANCO_AUTOMATICO: Partial<Record<FaseAnalise, { ms: number; proxima: FaseAnalise }>> = {
+  preparando: { ms: MS_PREPARANDO_PIX, proxima: "pix" },
+  esperando: { ms: MS_ESPERA_RETORNO, proxima: "pre-aprovado" },
+};
+
 /**
- * Tela de espera entre a confirmação do pagamento e o retorno.
+ * Tela de espera usada duas vezes na última etapa: antes do Pix e depois do
+ * pagamento.
  *
  * O texto é deliberadamente neutro: nenhuma consulta acontece nesses segundos,
  * então a tela não diz que está consultando financeira nem que um atendente
  * está analisando o CPF agora.
  */
-function EsperaRetorno({ nome }: { nome: string }) {
+function TelaEspera({
+  nome,
+  mensagem,
+  duracao,
+  children,
+}: {
+  nome: string;
+  mensagem: string;
+  duracao: number;
+  children?: ReactNode;
+}) {
   return (
     <div className="card-elevated mt-8 p-8 text-center sm:p-12">
       <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary/10">
         <Loader2 className="size-7 animate-spin text-primary" />
       </span>
       <h2 className="mt-5 text-2xl font-bold">Um instante{nome ? `, ${nome}` : ""}…</h2>
-      <p className="mt-2 text-muted-foreground">Estamos preparando o retorno do seu pedido.</p>
+      <p className="mt-2 text-muted-foreground">{mensagem}</p>
       <div
         className="mx-auto mt-7 h-2 max-w-md overflow-hidden rounded-full bg-secondary"
         role="progressbar"
-        aria-label="Preparando o retorno do pedido"
+        aria-label={mensagem}
       >
         <div
           className="barra-espera h-full bg-gradient-brand"
-          style={{ "--espera-retorno": `${MS_ESPERA_RETORNO}ms` } as CSSProperties}
+          style={{ "--espera-retorno": `${duracao}ms` } as CSSProperties}
         />
       </div>
 
-      <div className="mx-auto max-w-xl text-left">
-        <ConsultaBancos />
-      </div>
+      {children && <div className="mx-auto max-w-xl text-left">{children}</div>}
     </div>
   );
 }
@@ -1209,15 +1227,16 @@ function CreditAnalysisStep({
   protocolo: string;
   affiliate: string | null;
 }) {
-  const [fase, setFase] = useState<FaseAnalise>("pix");
+  const [fase, setFase] = useState<FaseAnalise>("preparando");
   const total = orderTotal(selection, combo);
   const parcela = installmentValue(total, installments);
   const cpf = useMemo(() => maskedCPFTail(person.cpf), [person.cpf]);
   const primeiroNome = person.nome.trim().split(" ")[0] ?? "";
 
   useEffect(() => {
-    if (fase !== "esperando") return;
-    const id = setTimeout(() => setFase("pre-aprovado"), MS_ESPERA_RETORNO);
+    const avanco = AVANCO_AUTOMATICO[fase];
+    if (!avanco) return;
+    const id = setTimeout(() => setFase(avanco.proxima), avanco.ms);
     return () => clearTimeout(id);
   }, [fase]);
 
@@ -1230,7 +1249,27 @@ function CreditAnalysisStep({
     }
   }
 
-  if (fase === "esperando") return <EsperaRetorno nome={primeiroNome} />;
+  // As financeiras entram só na primeira espera: o texto do bloco fala do que
+  // vem depois do pagamento, então repeti-lo já pago ficaria fora de hora.
+  if (fase === "preparando")
+    return (
+      <TelaEspera
+        nome={primeiroNome}
+        mensagem="Estamos gerando o Pix da taxa de análise."
+        duracao={MS_PREPARANDO_PIX}
+      >
+        <ConsultaBancos />
+      </TelaEspera>
+    );
+
+  if (fase === "esperando")
+    return (
+      <TelaEspera
+        nome={primeiroNome}
+        mensagem="Estamos preparando o retorno do seu pedido."
+        duracao={MS_ESPERA_RETORNO}
+      />
+    );
 
   const protocoloBox = (
     <div className="mt-6 rounded-2xl border border-primary/40 bg-primary/10 p-5">
