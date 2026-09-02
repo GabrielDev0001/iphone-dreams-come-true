@@ -1265,21 +1265,6 @@ function CreditAnalysisStep({
 
             {protocoloBox}
 
-            <div className="mt-6 rounded-2xl border border-border bg-secondary/40 p-5">
-              <p className="text-sm leading-relaxed">
-                Pré-aprovado quer dizer que{" "}
-                <span className="font-semibold text-foreground">seu pedido entrou na fila</span> e o
-                aparelho fica reservado. A consulta nas financeiras é feita por uma pessoa da nossa
-                equipe — o retorno com as condições finais sai em {ANALYSIS_SLA}, pelo WhatsApp.
-              </p>
-              <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[var(--warning,#eab308)]" />
-                <span>
-                  Enquanto a equipe não confirma, as parcelas acima continuam sendo simulação — o
-                  valor final depende da financeira que aprovar.
-                </span>
-              </p>
-            </div>
 
             <ol className="mt-5 space-y-3">
               {[
