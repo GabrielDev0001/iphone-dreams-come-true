@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
-  AlertTriangle,
   ArrowLeft,
   BadgeCheck,
   Building2,
@@ -1265,7 +1264,6 @@ function CreditAnalysisStep({
 
             {protocoloBox}
 
-
             <ol className="mt-5 space-y-3">
               {[
                 `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
@@ -1293,41 +1291,7 @@ function CreditAnalysisStep({
           </>
         ) : (
           <>
-            <CheckCircle2 className="size-10 text-[var(--success)]" />
-            <h2 className="mt-4 text-2xl font-bold">
-              Solicitação registrada{primeiroNome ? `, ${primeiroNome}` : ""}
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Guardamos seu pedido do {selection.model.name} {selection.storage.storage} na cor{" "}
-              {selection.color.name}. O próximo passo é a análise de crédito.
-            </p>
-
-            {protocoloBox}
-
-            <div className="mt-8 border-t border-border pt-6">
-              <h3 className="flex items-center gap-2 text-lg font-bold">
-                <Building2 className="size-5 text-primary" /> Como funciona a análise
-              </h3>
-
-              <div className="mt-4 rounded-2xl border border-border bg-secondary/40 p-5">
-                <p className="text-sm leading-relaxed">
-                  A análise de crédito é feita pela nossa equipe e tem um{" "}
-                  <span className="font-semibold text-foreground">
-                    custo de {BRL(ANALYSIS_FEE)}, pago antes da consulta
-                  </span>
-                  . O retorno sai em {ANALYSIS_SLA}.
-                </p>
-                <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
-                  <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[var(--warning,#eab308)]" />
-                  <span>
-                    Seu crédito ainda não foi avaliado — nada foi consultado até aqui. A análise
-                    pode ser{" "}
-                    <span className="font-semibold text-foreground">aprovada ou recusada</span>, e a
-                    taxa cobre o trabalho da consulta, não a aprovação.
-                  </span>
-                </p>
-              </div>
-
+            <div>
               <ConsultaBancos />
 
               <ol className="mt-5 space-y-3">
