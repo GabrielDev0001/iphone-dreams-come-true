@@ -1119,6 +1119,10 @@ function EsperaRetorno({ nome }: { nome: string }) {
           style={{ "--espera-retorno": `${MS_ESPERA_RETORNO}ms` } as CSSProperties}
         />
       </div>
+
+      <div className="mx-auto max-w-xl text-left">
+        <ConsultaBancos />
+      </div>
     </div>
   );
 }
@@ -1278,22 +1282,10 @@ function CreditAnalysisStep({
                 </li>
               ))}
             </ol>
-
-            <Button
-              size="xl"
-              className="mt-6 bg-[#25D366] text-white hover:bg-[#25D366]/90"
-              asChild
-            >
-              <a href={conversa} target="_blank" rel="noopener noreferrer">
-                <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
-              </a>
-            </Button>
           </>
         ) : (
           <>
             <div>
-              <ConsultaBancos />
-
               <ol className="mt-5 space-y-3">
                 {[
                   `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
@@ -1365,6 +1357,18 @@ function CreditAnalysisStep({
             {affiliate && <InfoLinha label="Indicação" value={affiliate} />}
           </div>
         </div>
+
+        {fase === "pre-aprovado" && (
+          <Button
+            size="xl"
+            className="mt-8 w-full bg-[#25D366] text-white hover:bg-[#25D366]/90"
+            asChild
+          >
+            <a href={conversa} target="_blank" rel="noopener noreferrer">
+              <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
+            </a>
+          </Button>
+        )}
       </div>
       <Summary selection={selection} combo={combo} installments={installments} />
     </div>
