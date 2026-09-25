@@ -8,6 +8,7 @@ import {
   Copy,
   CreditCard,
   Instagram,
+  Lock,
   Loader2,
   MapPin,
   Package,
@@ -29,7 +30,8 @@ import {
 } from "@/components/ui/accordion";
 import { ConsultaBancos } from "@/components/ConsultaBancos";
 import { PhonePhoto } from "@/components/PhonePhoto";
-import { PixCheckout } from "@/components/PixCheckout";
+import { CaktoCheckout } from "@/components/CaktoCheckout";
+import { usePagamentoCakto } from "@/hooks/use-pagamento-cakto";
 import { WhatsappIcon } from "@/components/WhatsappIcon";
 import { ClientesMarquee } from "@/components/ClientesMarquee";
 import { BancosMarquee } from "@/components/BancosMarquee";
@@ -56,6 +58,7 @@ import {
 } from "@/lib/iphones";
 import { isValidCPF } from "@/lib/cpf";
 import { linkWhatsapp } from "@/lib/whatsapp";
+import { novoTokenPagamento } from "@/lib/cakto";
 import { maskCEP, maskCPF, maskDate, maskPhone, maskedCPFTail } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -126,6 +129,7 @@ function Index() {
   const [combo, setCombo] = useState(false);
   const [installments, setInstallments] = useState(DEFAULT_INSTALLMENTS);
   const [protocolo, setProtocolo] = useState("");
+  const [tokenPagamento, setTokenPagamento] = useState("");
   const [address, setAddress] = useState<Address>({
     cep: "",
     rua: "",
@@ -230,6 +234,7 @@ function Index() {
             onBack={() => setStep(2)}
             onSubmit={() => {
               setProtocolo(novoProtocolo());
+              setTokenPagamento(novoTokenPagamento());
               setStep(4);
             }}
           />
@@ -243,6 +248,7 @@ function Index() {
             person={person}
             address={address}
             protocolo={protocolo}
+            tokenPagamento={tokenPagamento}
             affiliate={affiliate}
           />
         )}
@@ -1145,6 +1151,7 @@ function mensagemDaAnalise({
   person,
   address,
   protocolo,
+  pedidoCakto,
   affiliate,
 }: {
   selection: Selection;
@@ -1153,6 +1160,7 @@ function mensagemDaAnalise({
   person: Person;
   address: Address;
   protocolo: string;
+  pedidoCakto: string | null;
   affiliate: string | null;
 }): string {
   const total = orderTotal(selection, combo);
@@ -1163,6 +1171,7 @@ function mensagemDaAnalise({
     `Olá! Fiz o pagamento da taxa de análise de ${BRL(ANALYSIS_FEE)} e quero seguir com o pedido.`,
     "",
     `*Protocolo:* ${protocolo}`,
+    ...(pedidoCakto ? [`*Pedido Cakto:* ${pedidoCakto}`] : []),
     "",
     "*Aparelho*",
     `${selection.model.name} ${selection.storage.storage} — ${selection.color.name} (${
@@ -1184,15 +1193,14 @@ function mensagemDaAnalise({
     `${address.rua}, ${address.numero}${complemento}`,
     `${address.cidade}/${address.uf} — CEP ${address.cep}`,
     ...(affiliate ? ["", `Indicação: ${affiliate}`] : []),
-    "",
-    "Segue o comprovante do Pix.",
   ].join("\n");
 }
 
 /**
  * Última etapa: depois da espera, tudo o que o cliente precisa fica numa página
- * só, na ordem que a loja pediu — a pré-aprovação, o resumo do pedido, o Pix da
- * taxa e, no fim, o botão para mandar o comprovante no WhatsApp.
+ * só, na ordem que a loja pediu — a pré-aprovação, o resumo do pedido, o
+ * checkout da taxa e, no fim, o botão do WhatsApp, que só libera depois que a
+ * Cakto confirma o pagamento.
  */
 function CreditAnalysisStep({
   selection,
@@ -1201,6 +1209,7 @@ function CreditAnalysisStep({
   person,
   address,
   protocolo,
+  tokenPagamento,
   affiliate,
 }: {
   selection: Selection;
@@ -1209,9 +1218,12 @@ function CreditAnalysisStep({
   person: Person;
   address: Address;
   protocolo: string;
+  tokenPagamento: string;
   affiliate: string | null;
 }) {
   const [preparando, setPreparando] = useState(true);
+  const pagamento = usePagamentoCakto(tokenPagamento);
+  const pago = pagamento?.status === "paid";
   const total = orderTotal(selection, combo);
   const parcela = installmentValue(total, installments);
   const cpf = useMemo(() => maskedCPFTail(person.cpf), [person.cpf]);
@@ -1241,6 +1253,7 @@ function CreditAnalysisStep({
       person,
       address,
       protocolo,
+      pedidoCakto: pagamento?.refId ?? null,
       affiliate,
     }),
   );
@@ -1326,8 +1339,8 @@ function CreditAnalysisStep({
 
         <ol className="mt-8 space-y-3 border-t border-border pt-6">
           {[
-            `Pague a taxa de ${BRL(ANALYSIS_FEE)} no Pix abaixo.`,
-            `Envie o comprovante no WhatsApp citando o protocolo ${protocolo}.`,
+            `Pague a taxa de ${BRL(ANALYSIS_FEE)} no checkout seguro abaixo (Pix ou cartão).`,
+            "Com o pagamento confirmado, o botão do WhatsApp é liberado — envie seus dados por ele.",
             `Nossa equipe faz a consulta e responde em ${ANALYSIS_SLA}.`,
             "Aprovado, combinamos os boletos e a entrega. Recusado, avisamos o motivo.",
           ].map((texto, i) => (
@@ -1341,20 +1354,31 @@ function CreditAnalysisStep({
         </ol>
 
         <div className="mt-6">
-          <PixCheckout amount={ANALYSIS_FEE} reference={protocolo} affiliate={affiliate} />
+          <CaktoCheckout amount={ANALYSIS_FEE} token={tokenPagamento} pagamento={pagamento} />
         </div>
 
         {/* O rótulo é longo: sem deixar quebrar, o botão estoura a largura do
             celular e a página inteira passa a rolar para o lado. */}
-        <Button
-          size="xl"
-          className="mt-8 h-auto min-h-13 w-full bg-[#25D366] px-4 py-3 text-sm whitespace-normal text-white hover:bg-[#25D366]/90 sm:px-8 sm:text-base"
-          asChild
-        >
-          <a href={conversa} target="_blank" rel="noopener noreferrer">
-            <WhatsappIcon className="size-5" /> Enviar comprovante no WhatsApp
-          </a>
-        </Button>
+        {pago ? (
+          <Button
+            size="xl"
+            className="mt-8 h-auto min-h-13 w-full bg-[#25D366] px-4 py-3 text-sm whitespace-normal text-white hover:bg-[#25D366]/90 sm:px-8 sm:text-base"
+            asChild
+          >
+            <a href={conversa} target="_blank" rel="noopener noreferrer">
+              <WhatsappIcon className="size-5" /> Enviar meus dados no WhatsApp
+            </a>
+          </Button>
+        ) : (
+          <Button
+            size="xl"
+            disabled
+            className="mt-8 h-auto min-h-13 w-full px-4 py-3 text-sm whitespace-normal sm:px-8 sm:text-base"
+            variant="outline"
+          >
+            <Lock className="size-5" /> WhatsApp liberado após a confirmação do pagamento
+          </Button>
+        )}
       </div>
     </div>
   );

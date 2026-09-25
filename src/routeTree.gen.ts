@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiCaktoStatusRouteImport } from './routes/api/cakto/status'
+import { Route as ApiCaktoWebhookRouteImport } from './routes/api/cakto/webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCaktoStatusRoute = ApiCaktoStatusRouteImport.update({
+  id: '/api/cakto/status',
+  path: '/api/cakto/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCaktoWebhookRoute = ApiCaktoWebhookRouteImport.update({
+  id: '/api/cakto/webhook',
+  path: '/api/cakto/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/cakto/status': typeof ApiCaktoStatusRoute
+  '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/cakto/status': typeof ApiCaktoStatusRoute
+  '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/cakto/status': typeof ApiCaktoStatusRoute
+  '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/cakto/status' | '/api/cakto/webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/cakto/status' | '/api/cakto/webhook'
+  id: '__root__' | '/' | '/api/cakto/status' | '/api/cakto/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiCaktoStatusRoute: typeof ApiCaktoStatusRoute
+  ApiCaktoWebhookRoute: typeof ApiCaktoWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cakto/status': {
+      id: '/api/cakto/status'
+      path: '/api/cakto/status'
+      fullPath: '/api/cakto/status'
+      preLoaderRoute: typeof ApiCaktoStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cakto/webhook': {
+      id: '/api/cakto/webhook'
+      path: '/api/cakto/webhook'
+      fullPath: '/api/cakto/webhook'
+      preLoaderRoute: typeof ApiCaktoWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiCaktoStatusRoute: ApiCaktoStatusRoute,
+  ApiCaktoWebhookRoute: ApiCaktoWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
