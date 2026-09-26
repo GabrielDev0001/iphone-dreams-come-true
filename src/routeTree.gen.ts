@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiCaktoStatusRouteImport } from './routes/api/cakto/status'
 import { Route as ApiCaktoWebhookRouteImport } from './routes/api/cakto/webhook'
+import { Route as ApiMetaLeadRouteImport } from './routes/api/meta/lead'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const ApiCaktoWebhookRoute = ApiCaktoWebhookRouteImport.update({
   path: '/api/cakto/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMetaLeadRoute = ApiMetaLeadRouteImport.update({
+  id: '/api/meta/lead',
+  path: '/api/meta/lead',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/cakto/status': typeof ApiCaktoStatusRoute
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
+  '/api/meta/lead': typeof ApiMetaLeadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/cakto/status': typeof ApiCaktoStatusRoute
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
+  '/api/meta/lead': typeof ApiMetaLeadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/cakto/status': typeof ApiCaktoStatusRoute
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
+  '/api/meta/lead': typeof ApiMetaLeadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/cakto/status' | '/api/cakto/webhook'
+  fullPaths: '/' | '/api/cakto/status' | '/api/cakto/webhook' | '/api/meta/lead'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/cakto/status' | '/api/cakto/webhook'
-  id: '__root__' | '/' | '/api/cakto/status' | '/api/cakto/webhook'
+  to: '/' | '/api/cakto/status' | '/api/cakto/webhook' | '/api/meta/lead'
+  id: '__root__' | '/' | '/api/cakto/status' | '/api/cakto/webhook' | '/api/meta/lead'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiCaktoStatusRoute: typeof ApiCaktoStatusRoute
   ApiCaktoWebhookRoute: typeof ApiCaktoWebhookRoute
+  ApiMetaLeadRoute: typeof ApiMetaLeadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCaktoWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/meta/lead': {
+      id: '/api/meta/lead'
+      path: '/api/meta/lead'
+      fullPath: '/api/meta/lead'
+      preLoaderRoute: typeof ApiMetaLeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiCaktoStatusRoute: ApiCaktoStatusRoute,
   ApiCaktoWebhookRoute: ApiCaktoWebhookRoute,
+  ApiMetaLeadRoute: ApiMetaLeadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

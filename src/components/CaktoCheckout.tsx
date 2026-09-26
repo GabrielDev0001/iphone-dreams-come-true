@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, ExternalLink, Loader2, ShieldCheck } from 
 import { Button } from "@/components/ui/button";
 import { BRL } from "@/lib/iphones";
 import { linkCheckoutCakto, type StatusPagamento } from "@/lib/cakto";
+import { novoEventId, trackInitiateCheckout } from "@/lib/meta-pixel";
 
 /** Status que significam que o dinheiro voltou para o cliente. */
 const ESTORNADO = new Set(["refunded", "chargeback", "chargedback", "in_protest", "canceled"]);
@@ -78,7 +79,10 @@ export function CaktoCheckout({
           href={linkCheckoutCakto(token)}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => setAbriu(true)}
+          onClick={() => {
+            setAbriu(true);
+            trackInitiateCheckout(amount, novoEventId());
+          }}
         >
           <ExternalLink /> Pagar taxa de {BRL(amount)}
         </a>

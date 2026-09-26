@@ -59,6 +59,16 @@ import {
 import { isValidCPF } from "@/lib/cpf";
 import { linkWhatsapp } from "@/lib/whatsapp";
 import { novoTokenPagamento } from "@/lib/cakto";
+import {
+  cookiesMeta,
+  guardarEventIdLead,
+  guardarEventIdPurchase,
+  lerEventIdPurchase,
+  novoEventId,
+  trackLead,
+  trackPurchase,
+  trackViewContent,
+} from "@/lib/meta-pixel";
 import { maskCEP, maskCPF, maskDate, maskPhone, maskedCPFTail } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -194,6 +204,12 @@ function Index() {
             installments={installments}
             onInstallments={setInstallments}
             onSelect={(sel) => {
+              trackViewContent({
+                content_name: `${sel.model.name} ${sel.storage.storage}`,
+                content_ids: [sel.model.id],
+                value: sel.storage.price,
+                currency: "BRL",
+              });
               setSelection(sel);
               setStep(1);
             }}
@@ -233,8 +249,36 @@ function Index() {
             onChange={setPerson}
             onBack={() => setStep(2)}
             onSubmit={() => {
+              const token = novoTokenPagamento();
+              const eventIdLead = novoEventId();
+              const eventIdPurchase = novoEventId();
+              guardarEventIdLead(eventIdLead);
+              guardarEventIdPurchase(eventIdPurchase);
+              trackLead(eventIdLead, ANALYSIS_FEE);
+
+              const { fbp, fbc } = cookiesMeta();
+              void fetch("/api/meta/lead", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                  token,
+                  eventIdLead,
+                  eventIdPurchase,
+                  nome: person.nome,
+                  email: person.email,
+                  telefone: person.telefone,
+                  cpf: person.cpf,
+                  fbp,
+                  fbc,
+                  eventSourceUrl: window.location.href,
+                  valor: ANALYSIS_FEE,
+                }),
+              }).catch(() => {
+                // Tracking não bloqueia o funil.
+              });
+
               setProtocolo(novoProtocolo());
-              setTokenPagamento(novoTokenPagamento());
+              setTokenPagamento(token);
               setStep(4);
             }}
           />
@@ -1228,11 +1272,20 @@ function CreditAnalysisStep({
   const parcela = installmentValue(total, installments);
   const cpf = useMemo(() => maskedCPFTail(person.cpf), [person.cpf]);
   const primeiroNome = person.nome.trim().split(" ")[0] ?? "";
+  const purchaseEnviado = useRef(false);
 
   useEffect(() => {
     const id = setTimeout(() => setPreparando(false), MS_ESPERA_RETORNO);
     return () => clearTimeout(id);
   }, []);
+
+  useEffect(() => {
+    if (!pago || purchaseEnviado.current) return;
+    const eventId = lerEventIdPurchase();
+    if (!eventId) return;
+    purchaseEnviado.current = true;
+    trackPurchase(ANALYSIS_FEE, eventId);
+  }, [pago]);
 
   async function copiarProtocolo() {
     try {

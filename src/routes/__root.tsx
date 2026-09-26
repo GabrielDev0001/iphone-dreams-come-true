@@ -73,34 +73,53 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Gorillaphonebh — iPhone parcelado em até 48x" },
-      {
-        name: "description",
-        content:
-          "Parcele seu iPhone no boleto em até 48x com entrega em todo o Brasil. iPhones lacrados e semi-novos.",
-      },
-      { name: "author", content: "Gorillaphonebh" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap",
-      },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
-    ],
-  }),
+  head: () => {
+    const rawPixelId = import.meta.env["VITE_META_PIXEL_ID"] as string | undefined;
+    const pixelId = rawPixelId && /^\d+$/.test(rawPixelId) ? rawPixelId : undefined;
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "Gorillaphonebh — iPhone parcelado em até 48x" },
+        {
+          name: "description",
+          content:
+            "Parcele seu iPhone no boleto em até 48x com entrega em todo o Brasil. iPhones lacrados e semi-novos.",
+        },
+        { name: "author", content: "Gorillaphonebh" },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+      links: [
+        {
+          rel: "stylesheet",
+          href: appCss,
+        },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap",
+        },
+        { rel: "icon", href: "/favicon.png", type: "image/png" },
+      ],
+      scripts: pixelId
+        ? [
+            {
+              children: `
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','${pixelId}');
+fbq('track','PageView');
+`.trim(),
+            },
+          ]
+        : [],
+    };
+  },
 
   shellComponent: RootShell,
   component: RootComponent,
